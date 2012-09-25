@@ -1,0 +1,30 @@
+#
+# Copyright (c) 2012 Shotgun Software, Inc
+# ----------------------------------------------------
+#
+# Metadata defining the behaviour and requirements for this app
+
+
+# expected fields in the configuration file for this app
+configuration:
+    
+    sg_in_frame_field:
+        type: str
+        default_value: "sg_cut_in"
+        description: The Shotgun field to use to retrieve the in frame. The app will look 
+                     for this field on the entity associated with the current context (e.g.
+                     the current shot, current asset etc).
+        
+    sg_out_frame_field:
+        type: str
+        default_value: "sg_cut_out"
+        description: The Shotgun field to use to retrieve the out frame. The app will look 
+                     for this field on the entity associated with the current context (e.g.
+                     the current shot, current asset etc).
+        
+
+# the Shotgun fields that this app needs in order to operate correctly
+requires_shotgun_fields:
+
+# the engines that this app can operate in:
+supported_engines: [tk-nuke, tk-maya, tk-motionbuilder]
