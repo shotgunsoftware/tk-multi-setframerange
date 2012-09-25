@@ -24,13 +24,13 @@ class SetFrameRange(Application):
                                  "a current Shot, current Asset etc). This app requires "
                                  "an entity as part of the context in order to work.")
         
-        self.engine.register_command("Sync Frame Range with Shotgun", self.set_frame_range)
+        self.engine.register_command("Sync Frame Range with Shotgun", self.run_app)
 
     def destroy_app(self):
         self.log_debug("Destroying sg_set_frame_range")
         
 
-    def set_frame_range(self):
+    def run_app(self):
         """
         Callback from when the menu is clicked.
         """
@@ -63,7 +63,7 @@ class SetFrameRange(Application):
         # lazy import so that this script still loads in batch mode
         from PySide import QtCore, QtGui
         
-        QtGui.QMessageBox.information(self, "Frame Range Updated", message)
+        QtGui.QMessageBox.information(None, "Frame Range Updated", message)
         
         
     
@@ -120,14 +120,15 @@ class SetFrameRange(Application):
 
         elif engine == "tk-motionbuilder":
             from pyfbsdk import FBPlayerControl, FBTime
-            lPlayer = FBPlayerControl()
             
+            lPlayer = FBPlayerControl()
             current_in = lPlayer.LoopStart.GetFrame()
             current_out = lPlayer.LoopStop.GetFrame()        
             
         else:
             raise tank.TankError("Don't know how to get current frame range for engine %s!" % engine)
 
+        return (current_in, current_out)
 
     def set_frame_range(self, engine, in_frame, out_frame):
 
