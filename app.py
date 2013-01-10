@@ -61,7 +61,7 @@ class SetFrameRange(Application):
             
         # present a pyside dialog
         # lazy import so that this script still loads in batch mode
-        from PySide import QtCore, QtGui
+        from tank.platform.qt import QtCore, QtGui
         
         QtGui.QMessageBox.information(None, "Frame Range Updated", message)
         
