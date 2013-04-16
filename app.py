@@ -24,7 +24,7 @@ class SetFrameRange(Application):
                                  "a current Shot, current Asset etc). This app requires "
                                  "an entity as part of the context in order to work.")
         
-        self.engine.register_command("Sync Frame Range with Shotgun", self.run_app)
+        self.engine.register_command("sync_framerange", self.run_app, {"title": "Sync Frame Range with Shotgun"})
 
     def destroy_app(self):
         self.log_debug("Destroying sg_set_frame_range")
