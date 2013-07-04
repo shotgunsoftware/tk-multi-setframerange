@@ -132,6 +132,10 @@ class SetFrameRange(Application):
             current_in = xsi.GetValue("PlayControl.In")
             current_out = xsi.GetValue("PlayControl.Out")
 
+        elif engine == "tk-houdini":
+            import hou
+            current_in, current_out = hou.playbar.playbackRange()
+
         else:
             raise tank.TankError("Don't know how to get current frame range for engine %s!" % engine)
 
@@ -171,11 +175,9 @@ class SetFrameRange(Application):
             xsi.SetValue("PlayControl.In", in_frame)
             xsi.SetValue("PlayControl.Out", out_frame)
 
+        elif engine == "tk-houdini":
+            import hou
+            hou.playbar.setPlaybackRange(in_frame, out_frame)
+
         else:
             raise tank.TankError("Don't know how to set current frame range for engine %s!" % engine)
-
-
-
-
-
-
