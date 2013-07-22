@@ -177,10 +177,10 @@ class SetFrameRange(Application):
 
         elif engine == "tk-softimage":
             import win32com
-            xsi = win32com.client.Dispatch('XSI.Application')
+            Application = win32com.client.Dispatch('XSI.Application')
 
-            xsi.SetValue("PlayControl.In", in_frame)
-            xsi.SetValue("PlayControl.Out", out_frame)
+            Application.SetValue("PlayControl.In", in_frame)
+            Application.SetValue("PlayControl.Out", out_frame)
 
         elif engine == "tk-houdini":
             import hou
