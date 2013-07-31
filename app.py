@@ -152,7 +152,8 @@ class SetFrameRange(Application):
 
         if engine == "tk-maya":
             import pymel.core as pm
-            pm.playbackOptions(minTime=in_frame, maxTime=out_frame)
+            pm.playbackOptions(minTime=in_frame, maxTime=out_frame,
+                               animationStartTime=in_frame,animationEndTime=out_frame)
 
         elif engine == "tk-nuke":
             import nuke
