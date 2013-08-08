@@ -152,9 +152,17 @@ class SetFrameRange(Application):
 
         if engine == "tk-maya":
             import pymel.core as pm
+            
+            #setting animation frame range
             pm.playbackOptions(minTime=in_frame, maxTime=out_frame,
                                animationStartTime=in_frame,animationEndTime=out_frame)
-
+           
+           #setting render frame range
+           defaultRenderGlobals=pm.PyNode('defaultRenderGlobals')
+           
+           defaultRenderGlobals.startFrame.set(in_frame)
+           defaultRenderGlobals.endFrame.set(out_frame)
+           
         elif engine == "tk-nuke":
             import nuke
 
