@@ -49,7 +49,7 @@ class SetFrameRange(Application):
             message =  "Shotgun has not yet been populated with \n"
             message += "in and out frame data for this Shot."
 
-        elif int(new_in) != int(current_in) or int(new_out) != int(current_out):
+        else:
             # change!
             message =  "Your scene has been updated with the \n"
             message += "latest frame ranges from shotgun.\n\n"
@@ -58,13 +58,6 @@ class SetFrameRange(Application):
             message += "Previous end frame: %d\n" % current_out
             message += "New end frame: %d\n\n" % new_out
             self.set_frame_range(self.engine.name, new_in, new_out)
-
-        else:
-            # no change
-            message = "Already up to date!\n\n"
-            message += "Your scene is already in sync with the\n"
-            message += "start and end frames in shotgun.\n\n"
-            message += "No changes were made."
 
         # present a pyside dialog
         # lazy import so that this script still loads in batch mode
