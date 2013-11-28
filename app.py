@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -143,6 +143,12 @@ class SetFrameRange(Application):
             import hou
             current_in, current_out = hou.playbar.playbackRange()
 
+        elif engine == "tk-cinema4d":
+            import c4d
+            doc = c4d.documents.GetActiveDocument()
+            current_in = doc[c4d.DOCUMENT_MINTIME].GetFrame(doc.GetFps())
+            current_out = doc[c4d.DOCUMENT_MAXTIME].GetFrame(doc.GetFps())
+
         else:
             raise tank.TankError("Don't know how to get current frame range for engine %s!" % engine)
 
@@ -152,18 +158,18 @@ class SetFrameRange(Application):
 
         if engine == "tk-maya":
             import pymel.core as pm
-            
+
             # set frame ranges for plackback
-            pm.playbackOptions(minTime=in_frame, 
+            pm.playbackOptions(minTime=in_frame,
                                maxTime=out_frame,
                                animationStartTime=in_frame,
                                animationEndTime=out_frame)
-           
+
             # set frame ranges for rendering
             defaultRenderGlobals=pm.PyNode('defaultRenderGlobals')
             defaultRenderGlobals.startFrame.set(in_frame)
             defaultRenderGlobals.endFrame.set(out_frame)
-           
+
         elif engine == "tk-nuke":
             import nuke
 
@@ -195,6 +201,19 @@ class SetFrameRange(Application):
         elif engine == "tk-houdini":
             import hou
             hou.playbar.setPlaybackRange(in_frame, out_frame)
+
+        elif engine == "tk-cinema4d":
+            import c4d
+            doc = c4d.documents.GetActiveDocument()
+            # set values in the editing view
+            doc[c4d.DOCUMENT_MINTIME] = c4d.BaseTime(int(in_frame),
+                                                     doc.GetFps())
+            doc[c4d.DOCUMENT_MAXTIME] = c4d.BaseTime(int(out_frame),
+                                                     doc.GetFps())
+            # set values for render
+            rd = doc.GetActiveRenderData()
+            rd[c4d.RDATA_FRAMEFROM] = c4d.BaseTime(int(in_frame), doc.GetFps())
+            rd[c4d.RDATA_FRAMETO] = c4d.BaseTime(int(out_frame), doc.GetFps())
 
         else:
             raise tank.TankError("Don't know how to set current frame range for engine %s!" % engine)
