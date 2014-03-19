@@ -194,6 +194,8 @@ class SetFrameRange(Application):
 
         elif engine == "tk-houdini":
             import hou
+            # We have to use hscript until SideFX gets around to implementing hou.setGlobalFrameRange()
+            hou.hscript("tset `(({0}-1)/$FPS)` `({1}/$FPS)`".format(in_frame, out_frame))
             hou.playbar.setPlaybackRange(in_frame, out_frame)
 
         else:
