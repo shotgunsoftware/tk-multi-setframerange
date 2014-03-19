@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -43,39 +43,44 @@ class SetFrameRange(Application):
         """
 
         (new_in, new_out) = self.get_frame_range_from_shotgun()
-        (current_in, current_out) = self.get_current_frame_range(self.engine.name)
 
         if new_in is None or new_out is None:
             message =  "Shotgun has not yet been populated with \n"
             message += "in and out frame data for this Shot."
-
-        elif int(new_in) != int(current_in) or int(new_out) != int(current_out):
-            # change!
-            message =  "Your scene has been updated with the \n"
-            message += "latest frame ranges from shotgun.\n\n"
-            message += "Previous start frame: %d\n" % current_in
-            message += "New start frame: %d\n\n" % new_in
-            message += "Previous end frame: %d\n" % current_out
-            message += "New end frame: %d\n\n" % new_out
-            self.set_frame_range(self.engine.name, new_in, new_out)
-
         else:
-            # no change
-            message = "Already up to date!\n\n"
-            message += "Your scene is already in sync with the\n"
-            message += "start and end frames in shotgun.\n\n"
-            message += "No changes were made."
+            # track if any changes were made for message reporting.
+            changed = False
+
+            # build list of tuples for each get/set range pair.
+            range_methods = [(self.get_current_frame_range, self.set_frame_range),
+                             (self.get_current_render_range, self.set_render_range)]
+
+            # iterate over our range method list and check that each set matches
+            # what Shotgun returned.
+            for get_range_method, set_range_method in range_methods:
+                (current_in, current_out) = get_range_method(self.engine.name)
+                if int(new_in) != int(current_in) or int(new_out) != int(current_out):
+                    # change!
+                    changed = True
+                    set_range_method(self.engine.name, new_in, new_out)
+
+            if not changed:
+                # no change
+                message = "Already up to date!\n\n"
+                message += "Your scene is already in sync with the\n"
+                message += "start and end frames in shotgun.\n\n"
+                message += "No changes were made."
+            else:
+                message =  "Your scene has been updated with the \n"
+                message += "latest frame ranges from shotgun.\n\n"
+                message += "New start frame: %d\n\n" % new_in
+                message += "New end frame: %d\n\n" % new_out
 
         # present a pyside dialog
         # lazy import so that this script still loads in batch mode
         from tank.platform.qt import QtCore, QtGui
 
         QtGui.QMessageBox.information(None, "Frame Range Updated", message)
-
-
-
-
-
 
 
     ###############################################################################################
@@ -110,7 +115,6 @@ class SetFrameRange(Application):
                                  "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_out_field))
 
         return ( data[sg_in_field], data[sg_out_field] )
-
 
     def get_current_frame_range(self, engine):
 
@@ -152,18 +156,13 @@ class SetFrameRange(Application):
 
         if engine == "tk-maya":
             import pymel.core as pm
-            
+
             # set frame ranges for plackback
-            pm.playbackOptions(minTime=in_frame, 
+            pm.playbackOptions(minTime=in_frame,
                                maxTime=out_frame,
                                animationStartTime=in_frame,
                                animationEndTime=out_frame)
-           
-            # set frame ranges for rendering
-            defaultRenderGlobals=pm.PyNode('defaultRenderGlobals')
-            defaultRenderGlobals.startFrame.set(in_frame)
-            defaultRenderGlobals.endFrame.set(out_frame)
-           
+
         elif engine == "tk-nuke":
             import nuke
 
@@ -189,6 +188,8 @@ class SetFrameRange(Application):
             import win32com
             Application = win32com.client.Dispatch('XSI.Application')
 
+            Application.SetValue("PlayControl.GlobalIn", in_frame)
+            Application.SetValue("PlayControl.GlobalOut", out_frame)
             Application.SetValue("PlayControl.In", in_frame)
             Application.SetValue("PlayControl.Out", out_frame)
 
@@ -200,3 +201,39 @@ class SetFrameRange(Application):
 
         else:
             raise tank.TankError("Don't know how to set current frame range for engine %s!" % engine)
+
+    def get_current_render_range(self, engine):
+
+        current_in = None
+        current_out = None
+
+        if engine == "tk-maya":
+            import pymel.core as pm
+            defaultRenderGlobals=pm.PyNode('defaultRenderGlobals')
+            current_in = defaultRenderGlobals.startFrame.get()
+            current_out = defaultRenderGlobals.endFrame.get()
+        elif engine == "tk-softimage":
+            import win32com
+            Application = win32com.client.Dispatch('XSI.Application')
+            current_in = Application.GetValue("Passes.RenderOptions.FrameStart")
+            current_out = Application.GetValue("Passes.RenderOptions.FrameEnd")
+
+        return (current_in, current_out)
+
+    def set_render_range(self, engine, in_frame, out_frame):
+
+        if engine == "tk-maya":
+            import pymel.core as pm
+
+            # set frame ranges for rendering
+            defaultRenderGlobals=pm.PyNode('defaultRenderGlobals')
+            defaultRenderGlobals.startFrame.set(in_frame)
+            defaultRenderGlobals.endFrame.set(out_frame)
+
+        elif engine == "tk-softimage":
+            import win32com
+            Application = win32com.client.Dispatch('XSI.Application')
+
+            RenderOptions = Application.Dictionary.GetObject("Passes.RenderOptions")
+            RenderOptions.FrameStart = in_frame
+            RenderOptions.FrameEnd = out_frame
