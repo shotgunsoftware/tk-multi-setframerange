@@ -192,6 +192,10 @@ class SetFrameRange(Application):
             Application.SetValue("PlayControl.In", in_frame)
             Application.SetValue("PlayControl.Out", out_frame)
 
+            # set frame ranges for rendering
+            Application.SetValue("Passes.RenderOptions.FrameStart", in_frame, "")
+            Application.SetValue("Passes.RenderOptions.FrameEnd", out_frame, "")
+
         elif engine == "tk-houdini":
             import hou
             hou.playbar.setPlaybackRange(in_frame, out_frame)
