@@ -54,9 +54,9 @@ class SetFrameRange(Application):
             message =  "Your scene has been updated with the \n"
             message += "latest frame ranges from shotgun.\n\n"
             message += "Previous start frame: %d\n" % current_in
-            message += "New start frame: %d\n\n" % new_in
+            message += "New start frame: %d\n\n" % int(new_in)
             message += "Previous end frame: %d\n" % current_out
-            message += "New end frame: %d\n\n" % new_out
+            message += "New end frame: %d\n\n" % int(new_out)
             self.set_frame_range(self.engine.name, new_in, new_out)
 
         else:
@@ -196,6 +196,10 @@ class SetFrameRange(Application):
 
             Application.SetValue("PlayControl.In", in_frame)
             Application.SetValue("PlayControl.Out", out_frame)
+
+            # set frame ranges for rendering
+            Application.SetValue("Passes.RenderOptions.FrameStart", in_frame, "")
+            Application.SetValue("Passes.RenderOptions.FrameEnd", out_frame, "")
 
         elif engine == "tk-houdini":
             import hou
