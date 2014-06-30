@@ -17,13 +17,16 @@ import sys
 import os
 
 from tank.platform import Application
+from tank.platform.qt import QtCore, QtGui
 import tank
 
 
 class SetFrameRange(Application):
 
     def init_app(self):
-
+        """
+        App entry point
+        """
         # make sure that the context has an entity associated - otherwise it wont work!
         if self.context.entity is None:
             raise tank.TankError("Cannot load the Set Frame Range application! "
@@ -34,6 +37,9 @@ class SetFrameRange(Application):
         self.engine.register_command("Sync Frame Range with Shotgun", self.run_app)
 
     def destroy_app(self):
+        """
+        App teardown
+        """
         self.log_debug("Destroying sg_set_frame_range")
 
 
@@ -48,29 +54,23 @@ class SetFrameRange(Application):
         if new_in is None or new_out is None:
             message =  "Shotgun has not yet been populated with \n"
             message += "in and out frame data for this Shot."
-
-        elif int(new_in) != int(current_in) or int(new_out) != int(current_out):
-            # change!
-            message =  "Your scene has been updated with the \n"
-            message += "latest frame ranges from shotgun.\n\n"
-            message += "Previous start frame: %s\n" % current_in
-            message += "New start frame: %s\n\n" % new_in
-            message += "Previous end frame: %s\n" % current_out
-            message += "New end frame: %s\n\n" % new_out
-            self.set_frame_range(self.engine.name, new_in, new_out)
-
-        else:
-            # no change
-            message = "Already up to date!\n\n"
-            message += "Your scene is already in sync with the\n"
-            message += "start and end frames in shotgun.\n\n"
-            message += "No changes were made."
-
-        # present a pyside dialog
-        # lazy import so that this script still loads in batch mode
-        from tank.platform.qt import QtCore, QtGui
-        QtGui.QMessageBox.information(None, "Frame Range Updated", message)
-
+            QtGui.QMessageBox.information(None, "No data in Shotgun!", message)
+            return
+            
+        # now update the frame range.
+        # because the frame range is often set in multiple places (e.g render range,
+        # current range, anim range etc), we go ahead an update every time, even if
+        # the values in Shotgun are the same as the values reported via get_current_frame_range()
+        self.set_frame_range(self.engine.name, new_in, new_out)
+        
+        message =  "Your scene has been updated with the \n"
+        message += "latest frame ranges from shotgun.\n\n"
+        message += "Previous start frame: %s\n" % current_in
+        message += "New start frame: %s\n\n" % new_in
+        message += "Previous end frame: %s\n" % current_out
+        message += "New end frame: %s\n\n" % new_out
+        
+        QtGui.QMessageBox.information(None, "Frame range updated!", message)
 
 
 
@@ -160,7 +160,7 @@ class SetFrameRange(Application):
                                maxTime=out_frame,
                                animationStartTime=in_frame,
                                animationEndTime=out_frame)
-           
+            
             # set frame ranges for rendering
             defaultRenderGlobals=pm.PyNode('defaultRenderGlobals')
             defaultRenderGlobals.startFrame.set(in_frame)
