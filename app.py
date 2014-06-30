@@ -69,10 +69,7 @@ class SetFrameRange(Application):
         # present a pyside dialog
         # lazy import so that this script still loads in batch mode
         from tank.platform.qt import QtCore, QtGui
-
         QtGui.QMessageBox.information(None, "Frame Range Updated", message)
-
-
 
 
 
@@ -193,12 +190,12 @@ class SetFrameRange(Application):
         elif engine == "tk-softimage":
             import win32com
             Application = win32com.client.Dispatch('XSI.Application')
-
+            
             # set playback control
             Application.SetValue("PlayControl.In", in_frame)
             Application.SetValue("PlayControl.Out", out_frame)
             Application.SetValue("PlayControl.GlobalIn", in_frame)
-            Application.SetValue("PlayControl.GlobalOut", out_frame)            
+            Application.SetValue("PlayControl.GlobalOut", out_frame)       
             
             # set frame ranges for rendering
             Application.SetValue("Passes.RenderOptions.FrameStart", in_frame)
@@ -207,6 +204,8 @@ class SetFrameRange(Application):
 
         elif engine == "tk-houdini":
             import hou
+            # We have to use hscript until SideFX gets around to implementing hou.setGlobalFrameRange()
+            hou.hscript("tset `((%s-1)/$FPS)` `(%s/$FPS)`" % (in_frame, out_frame))            
             hou.playbar.setPlaybackRange(in_frame, out_frame)
 
         elif engine == "tk-3dsmax":
