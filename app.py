@@ -197,6 +197,8 @@ class SetFrameRange(Application):
             # set playback control
             Application.SetValue("PlayControl.In", in_frame)
             Application.SetValue("PlayControl.Out", out_frame)
+            Application.SetValue("PlayControl.GlobalIn", in_frame)
+            Application.SetValue("PlayControl.GlobalOut", out_frame)            
             
             # set frame ranges for rendering
             Application.SetValue("Passes.RenderOptions.FrameStart", in_frame)
