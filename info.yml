@@ -42,4 +42,4 @@ requires_core_version: "v0.12.5"
 requires_engine_version:
 
 # the engines that this app can operate in:
-supported_engines: [tk-nuke, tk-maya, tk-motionbuilder, tk-softimage, tk-houdini, tk-3dsmax]
+supported_engines: [tk-nuke, tk-maya, tk-motionbuilder, tk-softimage, tk-houdini, tk-3dsmax, tk-3dsmaxplus]

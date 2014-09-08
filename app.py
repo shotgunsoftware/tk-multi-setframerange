@@ -144,6 +144,11 @@ class SetFrameRange(Application):
             from Py3dsMax import mxs
             current_in = mxs.animationRange.start
             current_out = mxs.animationRange.end
+        elif engine == "tk-3dsmaxplus":
+            import MaxPlus
+            ticks = MaxPlus.Core.EvalMAXScript("ticksperframe").GetInt()
+            current_in = MaxPlus.Animation.GetAnimRange().Start() / ticks
+            current_out = MaxPlus.Animation.GetAnimRange().End() / ticks
 
         else:
             raise tank.TankError("Don't know how to get current frame range for engine %s!" % engine)
@@ -211,6 +216,11 @@ class SetFrameRange(Application):
         elif engine == "tk-3dsmax":
             from Py3dsMax import mxs
             mxs.animationRange = mxs.interval(in_frame, out_frame)
+        elif engine == "tk-3dsmaxplus":
+            import MaxPlus 
+            ticks = MaxPlus.Core.EvalMAXScript("ticksperframe").GetInt()
+            range = MaxPlus.Interval(in_frame * ticks, out_frame * ticks)
+            MaxPlus.Animation.SetRange(range)
         
         else:
             raise tank.TankError("Don't know how to set current frame range for engine %s!" % engine)
