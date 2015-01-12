@@ -119,8 +119,8 @@ class SetFrameRange(Application):
 
         elif engine == "tk-nuke":
             import nuke
-            current_in = nuke.root()["first_frame"].value()
-            current_out = nuke.root()["last_frame"].value()
+            current_in = int(nuke.root()["first_frame"].value())
+            current_out = int(nuke.root()["last_frame"].value())
 
         elif engine == "tk-motionbuilder":
             from pyfbsdk import FBPlayerControl, FBTime
