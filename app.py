@@ -36,6 +36,13 @@ class SetFrameRange(Application):
 
         self.engine.register_command("Sync Frame Range with Shotgun", self.run_app)
 
+    @property
+    def context_change_allowed(self):
+        """
+        Specifies that context changes are allowed.
+        """
+        return True
+
     def destroy_app(self):
         """
         App teardown
@@ -117,7 +124,7 @@ class SetFrameRange(Application):
             current_in = cmds.playbackOptions(query=True, minTime=True)
             current_out = cmds.playbackOptions(query=True, maxTime=True)
 
-        elif engine == "tk-nuke":
+        elif engine == "tk-nuke" and not self.engine.hiero_enabled:
             import nuke
             current_in = int(nuke.root()["first_frame"].value())
             current_out = int(nuke.root()["last_frame"].value())
@@ -171,7 +178,7 @@ class SetFrameRange(Application):
             defaultRenderGlobals.startFrame.set(in_frame)
             defaultRenderGlobals.endFrame.set(out_frame)
            
-        elif engine == "tk-nuke":
+        elif engine == "tk-nuke" and not self.engine.hiero_enabled:
             import nuke
 
             # unlock
