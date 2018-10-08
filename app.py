@@ -188,9 +188,8 @@ class SetFrameRange(Application):
             # set values
             nuke.root()["first_frame"].setValue(in_frame)
             nuke.root()["last_frame"].setValue(out_frame)
-            # and lock again
-            if locked:
-                nuke.root()["lock_range"].setValue(True)
+            # and lock range
+            nuke.root()["lock_range"].setValue(True)
 
         elif engine == "tk-motionbuilder":
             from pyfbsdk import FBPlayerControl, FBTime
