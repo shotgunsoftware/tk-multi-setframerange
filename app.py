@@ -182,6 +182,7 @@ class SetFrameRange(Application):
             import nuke
 
             # unlock
+            always_lock = self.get_setting("always_lock_range")
             locked = nuke.root()["lock_range"].value()
             if locked:
                 nuke.root()["lock_range"].setValue(False)
@@ -189,7 +190,8 @@ class SetFrameRange(Application):
             nuke.root()["first_frame"].setValue(in_frame)
             nuke.root()["last_frame"].setValue(out_frame)
             # and lock range
-            nuke.root()["lock_range"].setValue(True)
+            if locked or always_lock:
+                nuke.root()["lock_range"].setValue(True)
 
         elif engine == "tk-motionbuilder":
             from pyfbsdk import FBPlayerControl, FBTime
