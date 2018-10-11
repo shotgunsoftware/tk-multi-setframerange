@@ -182,14 +182,15 @@ class SetFrameRange(Application):
             import nuke
 
             # unlock
+            always_lock = self.get_setting("always_lock_range")
             locked = nuke.root()["lock_range"].value()
             if locked:
                 nuke.root()["lock_range"].setValue(False)
             # set values
             nuke.root()["first_frame"].setValue(in_frame)
             nuke.root()["last_frame"].setValue(out_frame)
-            # and lock again
-            if locked:
+            # and lock range
+            if locked or always_lock:
                 nuke.root()["lock_range"].setValue(True)
 
         elif engine == "tk-motionbuilder":
