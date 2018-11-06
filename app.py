@@ -23,6 +23,10 @@ import tank
 
 class SetFrameRange(Application):
 
+    # declared here it is accesible to hooks without funky imports
+    class FrameOperationNotSupported(Exception):
+        pass
+
     def init_app(self):
         """
         App entry point
@@ -68,16 +72,20 @@ class SetFrameRange(Application):
         # because the frame range is often set in multiple places (e.g render range,
         # current range, anim range etc), we go ahead an update every time, even if
         # the values in Shotgun are the same as the values reported via get_current_frame_range()
-        self.set_frame_range(self.engine.name, new_in, new_out)
+        updated = self.set_frame_range(self.engine.name, new_in, new_out)
         
-        message =  "Your scene has been updated with the \n"
-        message += "latest frame ranges from shotgun.\n\n"
-        message += "Previous start frame: %s\n" % current_in
-        message += "New start frame: %s\n\n" % new_in
-        message += "Previous end frame: %s\n" % current_out
-        message += "New end frame: %s\n\n" % new_out
-        
-        QtGui.QMessageBox.information(None, "Frame range updated!", message)
+        if updated:
+            message =  "Your scene has been updated with the \n"
+            message += "latest frame ranges from shotgun.\n\n"
+            message += "Previous start frame: %s\n" % current_in
+            message += "New start frame: %s\n\n" % new_in
+            message += "Previous end frame: %s\n" % current_out
+            message += "New end frame: %s\n\n" % new_out
+            
+            QtGui.QMessageBox.information(None, "Frame range updated!", message)
+        else:
+            message =  "There was a problem updating your scene frame range.\n"
+            QtGui.QMessageBox.warning(None, "Frame range not updated!", message)
 
 
 
@@ -115,119 +123,32 @@ class SetFrameRange(Application):
 
         return ( data[sg_in_field], data[sg_out_field] )
 
-
     def get_current_frame_range(self, engine):
+        try:
+            result = self.execute_hook("hook_frame_operation",
+                                       operation="get_frame_range")     
+        except tank.TankError, e:
+            # deliberately filter out exception that used to be thrown 
+            # from the scene operation hook but has since been removed
+            if not str(e).startswith("Not supported frame operation '"):
+                # just re-raise the exception:
+                raise
 
-        if engine == "tk-maya":
-            import pymel.core as pm
-            import maya.cmds as cmds
-            current_in = cmds.playbackOptions(query=True, minTime=True)
-            current_out = cmds.playbackOptions(query=True, maxTime=True)
-
-        elif engine == "tk-nuke" and not self.engine.hiero_enabled:
-            import nuke
-            current_in = int(nuke.root()["first_frame"].value())
-            current_out = int(nuke.root()["last_frame"].value())
-
-        elif engine == "tk-motionbuilder":
-            from pyfbsdk import FBPlayerControl, FBTime
-
-            lPlayer = FBPlayerControl()
-            current_in = lPlayer.LoopStart.GetFrame()
-            current_out = lPlayer.LoopStop.GetFrame()
-
-        elif engine == "tk-softimage":
-            import win32com
-            xsi = win32com.client.Dispatch('XSI.Application')
-
-            current_in = xsi.GetValue("PlayControl.In")
-            current_out = xsi.GetValue("PlayControl.Out")
-
-        elif engine == "tk-houdini":
-            import hou
-            current_in, current_out = hou.playbar.playbackRange()
-
-        elif engine == "tk-3dsmax":
-            from Py3dsMax import mxs
-            current_in = mxs.animationRange.start
-            current_out = mxs.animationRange.end
-        elif engine == "tk-3dsmaxplus":
-            import MaxPlus
-            ticks = MaxPlus.Core.EvalMAXScript("ticksperframe").GetInt()
-            current_in = MaxPlus.Animation.GetAnimRange().Start() / ticks
-            current_out = MaxPlus.Animation.GetAnimRange().End() / ticks
-
-        else:
-            raise tank.TankError("Don't know how to get current frame range for engine %s!" % engine)
-
-        return (current_in, current_out)
+        if not isinstance(result, tuple) or (isinstance(result, tuple) and len(result) != 2):
+            raise tank.TankError("Unexpected type returned from 'hook_frame_operation' for operation get_frame_range - expected a 'tuple' with (in_frame, out_frame) values but returned '%s' : %s" 
+                            % (type(result).__name__), result)
+        return result 
 
     def set_frame_range(self, engine, in_frame, out_frame):
-
-        if engine == "tk-maya":
-            import pymel.core as pm
-            
-            # set frame ranges for plackback
-            pm.playbackOptions(minTime=in_frame, 
-                               maxTime=out_frame,
-                               animationStartTime=in_frame,
-                               animationEndTime=out_frame)
-            
-            # set frame ranges for rendering
-            defaultRenderGlobals=pm.PyNode('defaultRenderGlobals')
-            defaultRenderGlobals.startFrame.set(in_frame)
-            defaultRenderGlobals.endFrame.set(out_frame)
-           
-        elif engine == "tk-nuke" and not self.engine.hiero_enabled:
-            import nuke
-
-            # unlock
-            locked = nuke.root()["lock_range"].value()
-            if locked:
-                nuke.root()["lock_range"].setValue(False)
-            # set values
-            nuke.root()["first_frame"].setValue(in_frame)
-            nuke.root()["last_frame"].setValue(out_frame)
-            # and lock again
-            if locked:
-                nuke.root()["lock_range"].setValue(True)
-
-        elif engine == "tk-motionbuilder":
-            from pyfbsdk import FBPlayerControl, FBTime
-
-            lPlayer = FBPlayerControl()
-            lPlayer.LoopStart = FBTime(0, 0, 0, in_frame)
-            lPlayer.LoopStop = FBTime(0, 0, 0, out_frame)
-
-        elif engine == "tk-softimage":
-            import win32com
-            Application = win32com.client.Dispatch('XSI.Application')
-            
-            # set playback control
-            Application.SetValue("PlayControl.In", in_frame)
-            Application.SetValue("PlayControl.Out", out_frame)
-            Application.SetValue("PlayControl.GlobalIn", in_frame)
-            Application.SetValue("PlayControl.GlobalOut", out_frame)       
-            
-            # set frame ranges for rendering
-            Application.SetValue("Passes.RenderOptions.FrameStart", in_frame)
-            Application.SetValue("Passes.RenderOptions.FrameEnd", out_frame)
-            
-
-        elif engine == "tk-houdini":
-            import hou
-            # We have to use hscript until SideFX gets around to implementing hou.setGlobalFrameRange()
-            hou.hscript("tset `((%s-1)/$FPS)` `(%s/$FPS)`" % (in_frame, out_frame))            
-            hou.playbar.setPlaybackRange(in_frame, out_frame)
-
-        elif engine == "tk-3dsmax":
-            from Py3dsMax import mxs
-            mxs.animationRange = mxs.interval(in_frame, out_frame)
-        elif engine == "tk-3dsmaxplus":
-            import MaxPlus 
-            ticks = MaxPlus.Core.EvalMAXScript("ticksperframe").GetInt()
-            range = MaxPlus.Interval(in_frame * ticks, out_frame * ticks)
-            MaxPlus.Animation.SetRange(range)
-        
-        else:
-            raise tank.TankError("Don't know how to set current frame range for engine %s!" % engine)
+        try:
+            result = self.execute_hook("hook_frame_operation",
+                                       operation="set_frame_range",
+                                       in_frame=in_frame,
+                                       out_frame=out_frame)     
+        except tank.TankError, e:
+            # deliberately filter out exception that used to be thrown 
+            # from the scene operation hook but has since been removed
+            if not str(e).startswith("Not supported frame operation '"):
+                # just re-raise the exception:
+                raise
+        return result

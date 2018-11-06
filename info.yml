@@ -28,6 +28,11 @@ configuration:
                      for this field on the entity associated with the current context (e.g.
                      the current shot, current asset etc).
         
+    # hooks
+    hook_frame_operation:
+        type: hook
+        default_value: "{self}/frame_operations_{engine_name}.py"
+        description: Hook which contains all methods for setting/getting frame ranges.
 
 # the Shotgun fields that this app needs in order to operate correctly
 requires_shotgun_fields:
