@@ -1,11 +1,11 @@
 # Copyright (c) 2013 Shotgun Software Inc.
-# 
+#
 # CONFIDENTIAL AND PROPRIETARY
-# 
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit 
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your 
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights 
+# By accessing, using, copying or modifying this work you indicate your
+# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 """
@@ -22,10 +22,6 @@ import tank
 
 
 class SetFrameRange(Application):
-
-    # declared here it is accesible to hooks without funky imports
-    class FrameOperationNotSupported(Exception):
-        pass
 
     def init_app(self):
         """
@@ -67,24 +63,24 @@ class SetFrameRange(Application):
             message += "in and out frame data for this Shot."
             QtGui.QMessageBox.information(None, "No data in Shotgun!", message)
             return
-            
+
         # now update the frame range.
         # because the frame range is often set in multiple places (e.g render range,
         # current range, anim range etc), we go ahead an update every time, even if
         # the values in Shotgun are the same as the values reported via get_current_frame_range()
         updated = self.set_frame_range(self.engine.name, new_in, new_out)
-        
+
         if updated:
-            message =  "Your scene has been updated with the \n"
+            message = "Your scene has been updated with the \n"
             message += "latest frame ranges from shotgun.\n\n"
             message += "Previous start frame: %s\n" % current_in
             message += "New start frame: %s\n\n" % new_in
             message += "Previous end frame: %s\n" % current_out
             message += "New end frame: %s\n\n" % new_out
-            
+
             QtGui.QMessageBox.information(None, "Frame range updated!", message)
         else:
-            message =  "There was a problem updating your scene frame range.\n"
+            message = "There was a problem updating your scene frame range.\n"
             QtGui.QMessageBox.warning(None, "Frame range not updated!", message)
 
 
@@ -125,28 +121,28 @@ class SetFrameRange(Application):
 
     def get_current_frame_range(self, engine):
         try:
-            result = self.execute_hook("hook_frame_operation",
-                                       operation="get_frame_range")     
+            result = self.execute_hook_method("hook_frame_operation",
+                                              operation="get_frame_range")
         except tank.TankError, e:
-            # deliberately filter out exception that used to be thrown 
+            # deliberately filter out exception that used to be thrown
             # from the scene operation hook but has since been removed
             if not str(e).startswith("Not supported frame operation '"):
                 # just re-raise the exception:
                 raise
 
         if not isinstance(result, tuple) or (isinstance(result, tuple) and len(result) != 2):
-            raise tank.TankError("Unexpected type returned from 'hook_frame_operation' for operation get_frame_range - expected a 'tuple' with (in_frame, out_frame) values but returned '%s' : %s" 
-                            % (type(result).__name__), result)
-        return result 
+            raise tank.TankError("Unexpected type returned from 'hook_frame_operation' for operation get_frame_range - expected a 'tuple' with (in_frame, out_frame) values but returned '%s' : %s"
+                                 % (type(result).__name__), result)
+        return result
 
     def set_frame_range(self, engine, in_frame, out_frame):
         try:
-            result = self.execute_hook("hook_frame_operation",
-                                       operation="set_frame_range",
-                                       in_frame=in_frame,
-                                       out_frame=out_frame)     
+            result = self.execute_hook_method("hook_frame_operation",
+                                              operation="set_frame_range",
+                                              in_frame=in_frame,
+                                              out_frame=out_frame)
         except tank.TankError, e:
-            # deliberately filter out exception that used to be thrown 
+            # deliberately filter out exception that used to be thrown
             # from the scene operation hook but has since been removed
             if not str(e).startswith("Not supported frame operation '"):
                 # just re-raise the exception:
