@@ -11,7 +11,6 @@
 import nuke
 
 import sgtk
-from sgtk import TankError
 
 HookBaseClass = sgtk.get_hook_baseclass()
 
@@ -22,43 +21,38 @@ class FrameOperation(HookBaseClass):
     current scene
     """
 
-    def execute(self, operation, in_frame=None, out_frame=None, **kwargs):
+    def get_frame_range(self, **kwargs):
         """
-        Main hook entry point
+        get_frame_range will return a tuple of (in_frame, out_frame)
 
-        :operation: String
-                    Frame operation to perform
+        :returns: Returns the frame range in the form (in_frame, out_frame)
+        :rtype: tuple[int, int]
+        """
+        current_in = int(nuke.root()["first_frame"].value())
+        current_out = int(nuke.root()["last_frame"].value())
+        return (current_in, current_out)
 
-        :in_frame: int
-                    in_frame for the current context (e.g. the current shot,
-                                                      current asset etc)
+    def set_frame_range(self, in_frame=None, out_frame=None, **kwargs):
+        """
+        set_frame_range will set the frame range using `in_frame` and `out_frame`
 
-        :out_frame: int
-                    out_frame for the current context (e.g. the current shot,
-                                                      current asset etc)
+        :param int in_frame: in_frame for the current context
+            (e.g. the current shot, current asset etc)
 
-        :returns:   Depends on operation:
-                    'set_frame_range' - Returns if the operation was succesfull
-                    'get_frame_range' - Returns the frame range in the form (in_frame, out_frame)
+        :param int out_frame: out_frame for the current context
+            (e.g. the current shot, current asset etc)
+
+        :returns: Returns if the operation was successfull
         """
 
-        engine = sgtk.platform.current_engine()
-        if engine.hiero_enabled:
-            raise TankError("Not supported frame operation for hiero")
-
-        if operation == "get_frame_range":
-            current_in = int(nuke.root()["first_frame"].value())
-            current_out = int(nuke.root()["last_frame"].value())
-            return (current_in, current_out)
-        elif operation == "set_frame_range":
-            # unlock
-            locked = nuke.root()["lock_range"].value()
-            if locked:
-                nuke.root()["lock_range"].setValue(False)
-            # set values
-            nuke.root()["first_frame"].setValue(in_frame)
-            nuke.root()["last_frame"].setValue(out_frame)
-            # and lock again
-            if locked:
-                nuke.root()["lock_range"].setValue(True)
-            return True
+        # unlock
+        locked = nuke.root()["lock_range"].value()
+        if locked:
+            nuke.root()["lock_range"].setValue(False)
+        # set values
+        nuke.root()["first_frame"].setValue(in_frame)
+        nuke.root()["last_frame"].setValue(out_frame)
+        # and lock again
+        if locked:
+            nuke.root()["lock_range"].setValue(True)
+        return True

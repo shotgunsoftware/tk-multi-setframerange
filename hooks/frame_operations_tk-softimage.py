@@ -21,43 +21,42 @@ class FrameOperation(HookBaseClass):
     current scene
     """
 
-    def execute(self, operation, in_frame=None, out_frame=None, **kwargs):
+    def get_frame_range(self, **kwargs):
         """
-        Main hook entry point
+        get_frame_range will return a tuple of (in_frame, out_frame)
 
-        :operation: String
-                    Frame operation to perform
+        :returns: Returns the frame range in the form (in_frame, out_frame)
+        :rtype: tuple[int, int]
+        """
+        xsi = win32com.client.Dispatch('XSI.Application')
 
-        :in_frame: int
-                    in_frame for the current context (e.g. the current shot,
-                                                      current asset etc)
+        current_in = xsi.GetValue("PlayControl.In")
+        current_out = xsi.GetValue("PlayControl.Out")
+        return (current_in, current_out)
 
-        :out_frame: int
-                    out_frame for the current context (e.g. the current shot,
-                                                      current asset etc)
+    def set_frame_range(self, in_frame=None, out_frame=None, **kwargs):
+        """
+        set_frame_range will set the frame range using `in_frame` and `out_frame`
 
-        :returns:   Depends on operation:
-                    'set_frame_range' - Returns if the operation was succesfull
-                    'get_frame_range' - Returns the frame range in the form (in_frame, out_frame)
+        :param int in_frame: in_frame for the current context
+            (e.g. the current shot, current asset etc)
+
+        :param int out_frame: out_frame for the current context
+            (e.g. the current shot, current asset etc)
+
+        :returns: Returns if the operation was successfull
         """
 
-        if operation == "get_frame_range":
-            xsi = win32com.client.Dispatch('XSI.Application')
+        Application = win32com.client.Dispatch('XSI.Application')
 
-            current_in = xsi.GetValue("PlayControl.In")
-            current_out = xsi.GetValue("PlayControl.Out")
-            return (current_in, current_out)
-        elif operation == "set_frame_range":
-            Application = win32com.client.Dispatch('XSI.Application')
+        # set playback control
+        Application.SetValue("PlayControl.In", in_frame)
+        Application.SetValue("PlayControl.Out", out_frame)
+        Application.SetValue("PlayControl.GlobalIn", in_frame)
+        Application.SetValue("PlayControl.GlobalOut", out_frame)
 
-            # set playback control
-            Application.SetValue("PlayControl.In", in_frame)
-            Application.SetValue("PlayControl.Out", out_frame)
-            Application.SetValue("PlayControl.GlobalIn", in_frame)
-            Application.SetValue("PlayControl.GlobalOut", out_frame)
+        # set frame ranges for rendering
+        Application.SetValue("Passes.RenderOptions.FrameStart", in_frame)
+        Application.SetValue("Passes.RenderOptions.FrameEnd", out_frame)
 
-            # set frame ranges for rendering
-            Application.SetValue("Passes.RenderOptions.FrameStart", in_frame)
-            Application.SetValue("Passes.RenderOptions.FrameEnd", out_frame)
-
-            return True
+        return True

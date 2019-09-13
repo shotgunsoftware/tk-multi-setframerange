@@ -22,39 +22,38 @@ class FrameOperation(HookBaseClass):
     current scene
     """
 
-    def execute(self, operation, in_frame=None, out_frame=None, **kwargs):
+    def get_frame_range(self, **kwargs):
         """
-        Main hook entry point
+        get_frame_range will return a tuple of (in_frame, out_frame)
 
-        :operation: String
-                    Frame operation to perform
+        :returns: Returns the frame range in the form (in_frame, out_frame)
+        :rtype: tuple[int, int]
+        """
+        current_in = cmds.playbackOptions(query=True, minTime=True)
+        current_out = cmds.playbackOptions(query=True, maxTime=True)
+        return (current_in, current_out)
 
-        :in_frame: int
-                    in_frame for the current context (e.g. the current shot,
-                                                      current asset etc)
+    def set_frame_range(self, in_frame=None, out_frame=None, **kwargs):
+        """
+        set_frame_range will set the frame range using `in_frame` and `out_frame`
 
-        :out_frame: int
-                    out_frame for the current context (e.g. the current shot,
-                                                      current asset etc)
+        :param int in_frame: in_frame for the current context
+            (e.g. the current shot, current asset etc)
 
-        :returns:   Depends on operation:
-                    'set_frame_range' - Returns if the operation was succesfull
-                    'get_frame_range' - Returns the frame range in the form (in_frame, out_frame)
+        :param int out_frame: out_frame for the current context
+            (e.g. the current shot, current asset etc)
+
+        :returns: Returns if the operation was successfull
         """
 
-        if operation == "get_frame_range":
-            current_in = cmds.playbackOptions(query=True, minTime=True)
-            current_out = cmds.playbackOptions(query=True, maxTime=True)
-            return (current_in, current_out)
-        elif operation == "set_frame_range":
-            # set frame ranges for plackback
-            pm.playbackOptions(minTime=in_frame,
-                               maxTime=out_frame,
-                               animationStartTime=in_frame,
-                               animationEndTime=out_frame)
+        # set frame ranges for plackback
+        pm.playbackOptions(minTime=in_frame,
+                           maxTime=out_frame,
+                           animationStartTime=in_frame,
+                           animationEndTime=out_frame)
 
-            # set frame ranges for rendering
-            defaultRenderGlobals = pm.PyNode('defaultRenderGlobals')
-            defaultRenderGlobals.startFrame.set(in_frame)
-            defaultRenderGlobals.endFrame.set(out_frame)
-            return True
+        # set frame ranges for rendering
+        defaultRenderGlobals = pm.PyNode('defaultRenderGlobals')
+        defaultRenderGlobals.startFrame.set(in_frame)
+        defaultRenderGlobals.endFrame.set(out_frame)
+        return True
