@@ -120,31 +120,22 @@ class SetFrameRange(Application):
         return ( data[sg_in_field], data[sg_out_field] )
 
     def get_current_frame_range(self, engine):
-        try:
-            result = self.execute_hook_method("hook_frame_operation",
-                                              operation="get_frame_range")
-        except tank.TankError, e:
-            # deliberately filter out exception that used to be thrown
-            # from the scene operation hook but has since been removed
-            if not str(e).startswith("Not supported frame operation '"):
-                # just re-raise the exception:
-                raise
+        result = self.execute_hook_method("hook_frame_operation", "get_frame_range")
 
         if not isinstance(result, tuple) or (isinstance(result, tuple) and len(result) != 2):
-            raise tank.TankError("Unexpected type returned from 'hook_frame_operation' for operation get_frame_range - expected a 'tuple' with (in_frame, out_frame) values but returned '%s' : %s"
-                                 % (type(result).__name__), result)
+            raise tank.TankError(
+                "Unexpected type returned from 'hook_frame_operation' for operation get_"
+                "frame_range - expected a 'tuple' with (in_frame, out_frame) values but "
+                "returned '%s' : %s" % (type(result).__name__),
+                result
+            )
         return result
 
     def set_frame_range(self, engine, in_frame, out_frame):
-        try:
-            result = self.execute_hook_method("hook_frame_operation",
-                                              operation="set_frame_range",
-                                              in_frame=in_frame,
-                                              out_frame=out_frame)
-        except tank.TankError, e:
-            # deliberately filter out exception that used to be thrown
-            # from the scene operation hook but has since been removed
-            if not str(e).startswith("Not supported frame operation '"):
-                # just re-raise the exception:
-                raise
+        result = self.execute_hook_method(
+            "hook_frame_operation",
+            "set_frame_range",
+            in_frame=in_frame,
+            out_frame=out_frame
+        )
         return result
