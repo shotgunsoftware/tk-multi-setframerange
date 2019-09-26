@@ -68,9 +68,8 @@ class SetFrameRange(Application):
         # because the frame range is often set in multiple places (e.g render range,
         # current range, anim range etc), we go ahead an update every time, even if
         # the values in Shotgun are the same as the values reported via get_current_frame_range()
-        updated = self.set_frame_range(self.engine.name, new_in, new_out)
-
-        if updated:
+        try:
+            self.set_frame_range(self.engine.name, new_in, new_out)
             message = "Your scene has been updated with the \n"
             message += "latest frame ranges from shotgun.\n\n"
             message += "Previous start frame: %s\n" % current_in
@@ -79,11 +78,13 @@ class SetFrameRange(Application):
             message += "New end frame: %s\n\n" % new_out
 
             QtGui.QMessageBox.information(None, "Frame range updated!", message)
-        else:
+
+        except tank.TankError:
+            import traceback
             message = "There was a problem updating your scene frame range.\n"
             QtGui.QMessageBox.warning(None, "Frame range not updated!", message)
-
-
+            error_message = traceback.format_exc()
+            self.log.error(error_message)
 
 
     ###############################################################################################
