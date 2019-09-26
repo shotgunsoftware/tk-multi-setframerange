@@ -46,7 +46,9 @@ class FrameOperation(HookBaseClass):
         :returns: Returns if the operation was successfull
         """
 
-        lPlayer = FBPlayerControl()
-        lPlayer.LoopStart = FBTime(0, 0, 0, in_frame)
-        lPlayer.LoopStop = FBTime(0, 0, 0, out_frame)
-        return True
+        try:
+            lPlayer = FBPlayerControl()
+            lPlayer.LoopStart = FBTime(0, 0, 0, in_frame)
+            lPlayer.LoopStop = FBTime(0, 0, 0, out_frame)
+        except Exception as err:
+            raise sgtk.TankError("Error setting frame range", err)

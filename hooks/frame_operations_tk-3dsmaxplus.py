@@ -46,7 +46,9 @@ class FrameOperation(HookBaseClass):
         :returns: Returns if the operation was successfull
         """
 
-        ticks = MaxPlus.Core.EvalMAXScript("ticksperframe").GetInt()
-        range = MaxPlus.Interval(in_frame * ticks, out_frame * ticks)
-        MaxPlus.Animation.SetRange(range)
-        return True
+        try:
+            ticks = MaxPlus.Core.EvalMAXScript("ticksperframe").GetInt()
+            range = MaxPlus.Interval(in_frame * ticks, out_frame * ticks)
+            MaxPlus.Animation.SetRange(range)
+        except Exception as err:
+            raise sgtk.TankError("Error setting frame range", err)

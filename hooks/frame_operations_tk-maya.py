@@ -46,14 +46,16 @@ class FrameOperation(HookBaseClass):
         :returns: Returns if the operation was successfull
         """
 
-        # set frame ranges for plackback
-        pm.playbackOptions(minTime=in_frame,
-                           maxTime=out_frame,
-                           animationStartTime=in_frame,
-                           animationEndTime=out_frame)
+        try:
+            # set frame ranges for plackback
+            pm.playbackOptions(minTime=in_frame,
+                               maxTime=out_frame,
+                               animationStartTime=in_frame,
+                               animationEndTime=out_frame)
 
-        # set frame ranges for rendering
-        defaultRenderGlobals = pm.PyNode('defaultRenderGlobals')
-        defaultRenderGlobals.startFrame.set(in_frame)
-        defaultRenderGlobals.endFrame.set(out_frame)
-        return True
+            # set frame ranges for rendering
+            defaultRenderGlobals = pm.PyNode('defaultRenderGlobals')
+            defaultRenderGlobals.startFrame.set(in_frame)
+            defaultRenderGlobals.endFrame.set(out_frame)
+        except Exception as err:
+            raise sgtk.TankError("Error setting frame range", err)

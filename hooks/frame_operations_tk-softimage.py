@@ -47,16 +47,17 @@ class FrameOperation(HookBaseClass):
         :returns: Returns if the operation was successfull
         """
 
-        Application = win32com.client.Dispatch('XSI.Application')
+        try:
+            Application = win32com.client.Dispatch('XSI.Application')
 
-        # set playback control
-        Application.SetValue("PlayControl.In", in_frame)
-        Application.SetValue("PlayControl.Out", out_frame)
-        Application.SetValue("PlayControl.GlobalIn", in_frame)
-        Application.SetValue("PlayControl.GlobalOut", out_frame)
+            # set playback control
+            Application.SetValue("PlayControl.In", in_frame)
+            Application.SetValue("PlayControl.Out", out_frame)
+            Application.SetValue("PlayControl.GlobalIn", in_frame)
+            Application.SetValue("PlayControl.GlobalOut", out_frame)
 
-        # set frame ranges for rendering
-        Application.SetValue("Passes.RenderOptions.FrameStart", in_frame)
-        Application.SetValue("Passes.RenderOptions.FrameEnd", out_frame)
-
-        return True
+            # set frame ranges for rendering
+            Application.SetValue("Passes.RenderOptions.FrameStart", in_frame)
+            Application.SetValue("Passes.RenderOptions.FrameEnd", out_frame)
+        except Exception as err:
+            raise sgtk.TankError("Error setting frame range", err)

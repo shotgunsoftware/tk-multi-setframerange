@@ -45,14 +45,16 @@ class FrameOperation(HookBaseClass):
         :returns: Returns if the operation was successfull
         """
 
-        # unlock
-        locked = nuke.root()["lock_range"].value()
-        if locked:
-            nuke.root()["lock_range"].setValue(False)
-        # set values
-        nuke.root()["first_frame"].setValue(in_frame)
-        nuke.root()["last_frame"].setValue(out_frame)
-        # and lock again
-        if locked:
-            nuke.root()["lock_range"].setValue(True)
-        return True
+        try:
+            # unlock
+            locked = nuke.root()["lock_range"].value()
+            if locked:
+                nuke.root()["lock_range"].setValue(False)
+            # set values
+            nuke.root()["first_frame"].setValue(in_frame)
+            nuke.root()["last_frame"].setValue(out_frame)
+            # and lock again
+            if locked:
+                nuke.root()["lock_range"].setValue(True)
+        except Exception as err:
+            raise sgtk.TankError("Error setting frame range", err)
