@@ -21,6 +21,13 @@ import tank
 
 
 class SetFrameRange(Application):
+    """
+    tk-multi-setframerange is a Shotgun toolkit application that allows you to set and get the
+        frame range from shotgun regardless of your specific DCC application.
+
+    Standard applications come implemented for you but you are able to implement support for
+        custom engines through the provided hooks.
+    """
 
     def init_app(self):
         """
@@ -52,6 +59,13 @@ class SetFrameRange(Application):
     def run_app(self):
         """
         Callback from when the menu is clicked.
+
+        The default callback will first query the frame range from shotgun and validate the data.
+        If there is missing Shotgun data it will popup a QMessageBox dialog alerting the user.
+
+        Assuming all data exists in shotgun, it will set the frame range with the newly
+            queried data and popup a QMessageBox with results.
+
         """
 
         (new_in, new_out) = self.get_frame_range_from_shotgun()
@@ -91,7 +105,16 @@ class SetFrameRange(Application):
 
     def get_frame_range_from_shotgun(self):
         """
-        Returns (in, out) frames from shotgun.
+        get_frame-range_from_shotgun will query shotgun for the
+            'sg_in_frame_field' and 'sg_out_frame_field' setting values and return a
+            tuple of (in, out).
+
+        If the fields specified in the settings do not exist in your Shotgun site, this will raise
+            a tank.TankError letting you know which field is missing.
+
+        :returns: Tuple of (in, out)
+        :rtype: tuple[int,int]
+        :raises: tank.TankError
         """
         # we know that this exists now (checked in init)
         entity = self.context.entity
@@ -123,6 +146,21 @@ class SetFrameRange(Application):
         return ( data[sg_in_field], data[sg_out_field] )
 
     def get_current_frame_range(self, engine):
+        """
+        get_current_frame_range will execute the hook specified in the 'hook_frame_operation'
+            setting for this app.
+        It will record the result of the hook and return the values as a tuple of (in, out).
+
+        If there is an internal exception thrown from the hook, it will reraise the exception as
+            a tank.TankError and write the traceback to the log.
+        If the data returned is not in the correct format, tuple with two keys, it will
+            also throw a tank.TankError exception.
+
+        :param str engine: Name of the engine that is calling this method.
+        :returns: Tuple of (in, out) frame range values.
+        :rtype: tuple[int,int]
+        :raises: tank.TankError
+        """
         try:
             result = self.execute_hook_method("hook_frame_operation", "get_frame_range")
         except Exception as err:
@@ -142,8 +180,19 @@ class SetFrameRange(Application):
         return result
 
     def set_frame_range(self, engine, in_frame, out_frame):
+        """
+        set_current_frame_range will execute the hook specified in the 'hook_frame_operation'
+            setting for this app.
+        It will pass the 'in_frame' and 'out_frame' to the hook.
+
+        If there is an internal exception thrown from the hook, it will reraise the exception as
+            a tank.TankError and write the traceback to the log.
+
+        :param str engine: Name of the engine that is calling this method.
+        :raises: tank.TankError
+        """
         try:
-            result = self.execute_hook_method(
+            self.execute_hook_method(
                 "hook_frame_operation",
                 "set_frame_range",
                 in_frame=in_frame,
@@ -155,4 +204,3 @@ class SetFrameRange(Application):
             raise tank.TankError(
                 "Encountered an error while setting the frame range: {}".format(str(err))
             )
-        return result
