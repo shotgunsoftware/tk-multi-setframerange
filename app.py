@@ -69,7 +69,7 @@ class SetFrameRange(Application):
         """
 
         (new_in, new_out) = self.get_frame_range_from_shotgun()
-        (current_in, current_out) = self.get_current_frame_range(self.engine.name)
+        (current_in, current_out) = self.get_current_frame_range()
 
         if new_in is None or new_out is None:
             message =  "Shotgun has not yet been populated with \n"
@@ -82,7 +82,7 @@ class SetFrameRange(Application):
         # current range, anim range etc), we go ahead an update every time, even if
         # the values in Shotgun are the same as the values reported via get_current_frame_range()
         try:
-            self.set_frame_range(self.engine.name, new_in, new_out)
+            self.set_frame_range(new_in, new_out)
             message = "Your scene has been updated with the \n"
             message += "latest frame ranges from shotgun.\n\n"
             message += "Previous start frame: %s\n" % current_in
@@ -145,7 +145,7 @@ class SetFrameRange(Application):
 
         return ( data[sg_in_field], data[sg_out_field] )
 
-    def get_current_frame_range(self, engine):
+    def get_current_frame_range(self):
         """
         get_current_frame_range will execute the hook specified in the 'hook_frame_operation'
             setting for this app.
@@ -156,7 +156,6 @@ class SetFrameRange(Application):
         If the data returned is not in the correct format, tuple with two keys, it will
             also throw a tank.TankError exception.
 
-        :param str engine: Name of the engine that is calling this method.
         :returns: Tuple of (in, out) frame range values.
         :rtype: tuple[int,int]
         :raises: tank.TankError
@@ -179,7 +178,7 @@ class SetFrameRange(Application):
             )
         return result
 
-    def set_frame_range(self, engine, in_frame, out_frame):
+    def set_frame_range(self, in_frame, out_frame):
         """
         set_current_frame_range will execute the hook specified in the 'hook_frame_operation'
             setting for this app.
@@ -188,7 +187,8 @@ class SetFrameRange(Application):
         If there is an internal exception thrown from the hook, it will reraise the exception as
             a tank.TankError and write the traceback to the log.
 
-        :param str engine: Name of the engine that is calling this method.
+        :param int in_frame: The value of in_frame that we want to set in the current session.
+        :param int out_frame: The value of out_frame that we want to set in the current session.
         :raises: tank.TankError
         """
         try:
