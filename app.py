@@ -12,9 +12,8 @@
 An app that syncs the frame range between a scene and a shot in Shotgun.
 
 """
-
-import sys
 import os
+import traceback
 
 from tank.platform import Application
 from tank.platform.qt import QtCore, QtGui
@@ -80,7 +79,6 @@ class SetFrameRange(Application):
             QtGui.QMessageBox.information(None, "Frame range updated!", message)
 
         except tank.TankError:
-            import traceback
             message = "There was a problem updating your scene frame range.\n"
             QtGui.QMessageBox.warning(None, "Frame range not updated!", message)
             error_message = traceback.format_exc()
@@ -109,19 +107,30 @@ class SetFrameRange(Application):
 
         # check if fields exist!
         if sg_in_field not in data:
-            raise tank.TankError("Configuration error: Your current context is connected to a Shotgun "
-                                 "%s. This entity type does not have a "
-                                 "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_in_field))
+            raise tank.TankError(
+                "Configuration error: Your current context is connected to a Shotgun "
+                "%s. This entity type does not have a "
+                "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_in_field)
+            )
 
         if sg_out_field not in data:
-            raise tank.TankError("Configuration error: Your current context is connected to a Shotgun "
-                                 "%s. This entity type does not have a "
-                                 "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_out_field))
+            raise tank.TankError(
+                "Configuration error: Your current context is connected to a Shotgun "
+                "%s. This entity type does not have a "
+                "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_out_field)
+            )
 
         return ( data[sg_in_field], data[sg_out_field] )
 
     def get_current_frame_range(self, engine):
-        result = self.execute_hook_method("hook_frame_operation", "get_frame_range")
+        try:
+            result = self.execute_hook_method("hook_frame_operation", "get_frame_range")
+        except Exception as err:
+            error_message = traceback.format_exc()
+            self.log.error(error_message)
+            raise tank.TankError(
+                "Encountered an error while getting the frame range: {}".format(str(err))
+            )
 
         if not isinstance(result, tuple) or (isinstance(result, tuple) and len(result) != 2):
             raise tank.TankError(
@@ -133,10 +142,17 @@ class SetFrameRange(Application):
         return result
 
     def set_frame_range(self, engine, in_frame, out_frame):
-        result = self.execute_hook_method(
-            "hook_frame_operation",
-            "set_frame_range",
-            in_frame=in_frame,
-            out_frame=out_frame
-        )
+        try:
+            result = self.execute_hook_method(
+                "hook_frame_operation",
+                "set_frame_range",
+                in_frame=in_frame,
+                out_frame=out_frame
+            )
+        except Exception as err:
+            error_message = traceback.format_exc()
+            self.log.error(error_message)
+            raise tank.TankError(
+                "Encountered an error while setting the frame range: {}".format(str(err))
+            )
         return result
