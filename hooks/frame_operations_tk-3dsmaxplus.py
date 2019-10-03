@@ -43,7 +43,6 @@ class FrameOperation(HookBaseClass):
         :param int out_frame: out_frame for the current context
             (e.g. the current shot, current asset etc)
 
-        :returns: Returns if the operation was successfull
         """
 
         ticks = MaxPlus.Core.EvalMAXScript("ticksperframe").GetInt()
