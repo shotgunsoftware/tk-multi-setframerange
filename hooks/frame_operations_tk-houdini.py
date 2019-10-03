@@ -44,9 +44,6 @@ class FrameOperation(HookBaseClass):
         :returns: Returns if the operation was successfull
         """
 
-        try:
-            # We have to use hscript until SideFX gets around to implementing hou.setGlobalFrameRange()
-            hou.hscript("tset `((%s-1)/$FPS)` `(%s/$FPS)`" % (in_frame, out_frame))
-            hou.playbar.setPlaybackRange(in_frame, out_frame)
-        except Exception as err:
-            raise sgtk.TankError("Error setting frame range", err)
+        # We have to use hscript until SideFX gets around to implementing hou.setGlobalFrameRange()
+        hou.hscript("tset `((%s-1)/$FPS)` `(%s/$FPS)`" % (in_frame, out_frame))
+        hou.playbar.setPlaybackRange(in_frame, out_frame)
