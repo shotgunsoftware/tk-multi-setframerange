@@ -67,21 +67,20 @@ class SetFrameRange(Application):
             queried data and popup a QMessageBox with results.
 
         """
-
-        (new_in, new_out) = self.get_frame_range_from_shotgun()
-        (current_in, current_out) = self.get_current_frame_range()
-
-        if new_in is None or new_out is None:
-            message =  "Shotgun has not yet been populated with \n"
-            message += "in and out frame data for this Shot."
-            QtGui.QMessageBox.information(None, "No data in Shotgun!", message)
-            return
-
-        # now update the frame range.
-        # because the frame range is often set in multiple places (e.g render range,
-        # current range, anim range etc), we go ahead an update every time, even if
-        # the values in Shotgun are the same as the values reported via get_current_frame_range()
         try:
+            (new_in, new_out) = self.get_frame_range_from_shotgun()
+            (current_in, current_out) = self.get_current_frame_range()
+
+            if new_in is None or new_out is None:
+                message =  "Shotgun has not yet been populated with \n"
+                message += "in and out frame data for this Shot."
+                QtGui.QMessageBox.information(None, "No data in Shotgun!", message)
+                return
+
+            # now update the frame range.
+            # because the frame range is often set in multiple places (e.g render range,
+            # current range, anim range etc), we go ahead an update every time, even if the values
+            # in Shotgun are the same as the values reported via get_current_frame_range()
             self.set_frame_range(new_in, new_out)
             message = "Your scene has been updated with the \n"
             message += "latest frame ranges from shotgun.\n\n"
