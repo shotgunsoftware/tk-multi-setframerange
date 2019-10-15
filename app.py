@@ -72,7 +72,7 @@ class SetFrameRange(Application):
             (current_in, current_out) = self.get_current_frame_range()
 
             if new_in is None or new_out is None:
-                message =  "Shotgun has not yet been populated with \n"
+                message = "Shotgun has not yet been populated with \n"
                 message += "in and out frame data for this Shot."
                 QtGui.QMessageBox.information(None, "No data in Shotgun!", message)
                 return
