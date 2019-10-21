@@ -53,7 +53,7 @@ class SetFrameRange(Application):
         """
         App teardown
         """
-        self.log_debug("Destroying sg_set_frame_range")
+        self.logger.debug("Destroying sg_set_frame_range")
 
 
     def run_app(self):
@@ -95,7 +95,7 @@ class SetFrameRange(Application):
             message = "There was a problem updating your scene frame range.\n"
             QtGui.QMessageBox.warning(None, "Frame range not updated!", message)
             error_message = traceback.format_exc()
-            self.log.error(error_message)
+            self.logger.error(error_message)
 
 
     ###############################################################################################
@@ -163,7 +163,7 @@ class SetFrameRange(Application):
             result = self.execute_hook_method("hook_frame_operation", "get_frame_range")
         except Exception as err:
             error_message = traceback.format_exc()
-            self.log.error(error_message)
+            self.logger.error(error_message)
             raise tank.TankError(
                 "Encountered an error while getting the frame range: {}".format(str(err))
             )
@@ -199,7 +199,7 @@ class SetFrameRange(Application):
             )
         except Exception as err:
             error_message = traceback.format_exc()
-            self.log.error(error_message)
+            self.logger.error(error_message)
             raise tank.TankError(
                 "Encountered an error while setting the frame range: {}".format(str(err))
             )
