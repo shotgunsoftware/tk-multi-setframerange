@@ -34,7 +34,9 @@ class SetFrameRange(Application):
                                  "a current Shot, current Asset etc). This app requires "
                                  "an entity as part of the context in order to work.")
 
-        self.engine.register_command("Sync Frame Range with Shotgun", self.run_app)
+        # We grab the menu name from the settings so that the user is able to register multiple instances
+        # of this app with different frame range fields configured.
+        self.engine.register_command(self.get_setting("menu_name"), self.run_app)
 
     @property
     def context_change_allowed(self):

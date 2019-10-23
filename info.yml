@@ -13,6 +13,11 @@
 
 # expected fields in the configuration file for this app
 configuration:
+
+    menu_name:
+        type: str
+        default_value: "Sync Frame Range with Shotgun"
+        description: The name that will be shown in the Shotgun menu.
     
     sg_in_frame_field:
         type: str
