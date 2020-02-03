@@ -35,10 +35,12 @@ class SetFrameRange(Application):
         """
         # make sure that the context has an entity associated - otherwise it wont work!
         if self.context.entity is None:
-            raise tank.TankError("Cannot load the Set Frame Range application! "
-                                 "Your current context does not have an entity (e.g. "
-                                 "a current Shot, current Asset etc). This app requires "
-                                 "an entity as part of the context in order to work.")
+            raise tank.TankError(
+                "Cannot load the Set Frame Range application! "
+                "Your current context does not have an entity (e.g. "
+                "a current Shot, current Asset etc). This app requires "
+                "an entity as part of the context in order to work."
+            )
 
         # We grab the menu name from the settings so that the user is able to register multiple instances
         # of this app with different frame range fields configured.
@@ -56,7 +58,6 @@ class SetFrameRange(Application):
         App teardown
         """
         self.logger.debug("Destroying sg_set_frame_range")
-
 
     def run_app(self):
         """
@@ -99,10 +100,8 @@ class SetFrameRange(Application):
             error_message = traceback.format_exc()
             self.logger.error(error_message)
 
-
     ###############################################################################################
     # implementation
-
 
     def get_frame_range_from_shotgun(self):
         """
@@ -144,7 +143,7 @@ class SetFrameRange(Application):
                 "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_out_field)
             )
 
-        return ( data[sg_in_field], data[sg_out_field] )
+        return (data[sg_in_field], data[sg_out_field])
 
     def get_current_frame_range(self):
         """
@@ -167,15 +166,19 @@ class SetFrameRange(Application):
             error_message = traceback.format_exc()
             self.logger.error(error_message)
             raise tank.TankError(
-                "Encountered an error while getting the frame range: {}".format(str(err))
+                "Encountered an error while getting the frame range: {}".format(
+                    str(err)
+                )
             )
 
-        if not isinstance(result, tuple) or (isinstance(result, tuple) and len(result) != 2):
+        if not isinstance(result, tuple) or (
+            isinstance(result, tuple) and len(result) != 2
+        ):
             raise tank.TankError(
                 "Unexpected type returned from 'hook_frame_operation' for operation get_"
                 "frame_range - expected a 'tuple' with (in_frame, out_frame) values but "
                 "returned '%s' : %s" % (type(result).__name__),
-                result
+                result,
             )
         return result
 
@@ -197,11 +200,13 @@ class SetFrameRange(Application):
                 "hook_frame_operation",
                 "set_frame_range",
                 in_frame=in_frame,
-                out_frame=out_frame
+                out_frame=out_frame,
             )
         except Exception as err:
             error_message = traceback.format_exc()
             self.logger.error(error_message)
             raise tank.TankError(
-                "Encountered an error while setting the frame range: {}".format(str(err))
+                "Encountered an error while setting the frame range: {}".format(
+                    str(err)
+                )
             )
