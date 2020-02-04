@@ -46,12 +46,14 @@ class FrameOperation(HookBaseClass):
         """
 
         # set frame ranges for plackback
-        pm.playbackOptions(minTime=in_frame,
-                           maxTime=out_frame,
-                           animationStartTime=in_frame,
-                           animationEndTime=out_frame)
+        pm.playbackOptions(
+            minTime=in_frame,
+            maxTime=out_frame,
+            animationStartTime=in_frame,
+            animationEndTime=out_frame,
+        )
 
         # set frame ranges for rendering
-        defaultRenderGlobals = pm.PyNode('defaultRenderGlobals')
+        defaultRenderGlobals = pm.PyNode("defaultRenderGlobals")
         defaultRenderGlobals.startFrame.set(in_frame)
         defaultRenderGlobals.endFrame.set(out_frame)

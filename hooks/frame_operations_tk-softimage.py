@@ -28,7 +28,7 @@ class FrameOperation(HookBaseClass):
         :returns: Returns the frame range in the form (in_frame, out_frame)
         :rtype: tuple[int, int]
         """
-        xsi = win32com.client.Dispatch('XSI.Application')
+        xsi = win32com.client.Dispatch("XSI.Application")
 
         current_in = xsi.GetValue("PlayControl.In")
         current_out = xsi.GetValue("PlayControl.Out")
@@ -46,7 +46,7 @@ class FrameOperation(HookBaseClass):
 
         """
 
-        Application = win32com.client.Dispatch('XSI.Application')
+        Application = win32com.client.Dispatch("XSI.Application")
 
         # set playback control
         Application.SetValue("PlayControl.In", in_frame)
