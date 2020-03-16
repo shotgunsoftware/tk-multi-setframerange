@@ -8,7 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-import pymel.core as pm
 import maya.cmds as cmds
 
 import sgtk
@@ -46,7 +45,7 @@ class FrameOperation(HookBaseClass):
         """
 
         # set frame ranges for plackback
-        pm.playbackOptions(
+        cmds.playbackOptions(
             minTime=in_frame,
             maxTime=out_frame,
             animationStartTime=in_frame,
@@ -54,6 +53,5 @@ class FrameOperation(HookBaseClass):
         )
 
         # set frame ranges for rendering
-        defaultRenderGlobals = pm.PyNode("defaultRenderGlobals")
-        defaultRenderGlobals.startFrame.set(in_frame)
-        defaultRenderGlobals.endFrame.set(out_frame)
+        cmds.setAttr("defaultRenderGlobals.startFrame", in_frame)
+        cmds.setAttr("defaultRenderGlobals.endFrame", out_frame)
