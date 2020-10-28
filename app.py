@@ -33,14 +33,6 @@ class SetFrameRange(Application):
         """
         App entry point
         """
-        # make sure that the context has an entity associated - otherwise it wont work!
-        if self.context.entity is None:
-            raise tank.TankError(
-                "Cannot load the Set Frame Range application! "
-                "Your current context does not have an entity (e.g. "
-                "a current Shot, current Asset etc). This app requires "
-                "an entity as part of the context in order to work."
-            )
 
         # We grab the menu name from the settings so that the user is able to register multiple instances
         # of this app with different frame range fields configured.
@@ -59,7 +51,7 @@ class SetFrameRange(Application):
         """
         self.logger.debug("Destroying sg_set_frame_range")
 
-    def run_app(self):
+    def run_app(self, context=None):
         """
         Callback from when the menu is clicked.
 
@@ -71,7 +63,7 @@ class SetFrameRange(Application):
 
         """
         try:
-            (new_in, new_out) = self.get_frame_range_from_shotgun()
+            (new_in, new_out) = self.get_frame_range_from_shotgun(context)
             (current_in, current_out) = self.get_current_frame_range()
 
             if new_in is None or new_out is None:
@@ -103,7 +95,7 @@ class SetFrameRange(Application):
     ###############################################################################################
     # implementation
 
-    def get_frame_range_from_shotgun(self):
+    def get_frame_range_from_shotgun(self, context=None):
         """
         get_frame-range_from_shotgun will query shotgun for the
             'sg_in_frame_field' and 'sg_out_frame_field' setting values and return a
@@ -116,10 +108,23 @@ class SetFrameRange(Application):
         :rtype: tuple[int,int]
         :raises: tank.TankError
         """
-        # we know that this exists now (checked in init)
-        entity = self.context.entity
 
-        sg_entity_type = self.context.entity["type"]
+        if context is None:
+            context = self.context
+
+        # make sure that the context has an entity associated - otherwise it wont work!
+        if context.entity is None:
+            raise tank.TankError(
+                "Cannot Set Frame Range"
+                "Your current context does not have an entity (e.g. "
+                "a current Shot, current Asset etc). This app requires "
+                "an entity as part of the context in order to work."
+            )
+
+        # we know that this exists now
+        entity = context.entity
+
+        sg_entity_type = context.entity["type"]
         sg_filters = [["id", "is", entity["id"]]]
 
         sg_in_field = self.get_setting("sg_in_frame_field")
