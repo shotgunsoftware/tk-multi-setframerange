@@ -71,8 +71,8 @@ class SetFrameRange(Application):
 
         """
         try:
-            (new_in, new_out) = self.get_frame_range_from_shotgun()
-            (current_in, current_out) = self.get_current_frame_range()
+            (new_in, new_out, new_head, new_tail) = self.get_frame_range_from_shotgun()
+            (current_in, current_out, current_head, current_tail) = self.get_current_frame_range()
 
             if new_in is None or new_out is None:
                 message = "Shotgun has not yet been populated with \n"
@@ -84,13 +84,13 @@ class SetFrameRange(Application):
             # because the frame range is often set in multiple places (e.g render range,
             # current range, anim range etc), we go ahead an update every time, even if the values
             # in Shotgun are the same as the values reported via get_current_frame_range()
-            self.set_frame_range(new_in, new_out)
+            self.set_frame_range(new_in, new_out, new_head, new_tail)
             message = "Your scene has been updated with the \n"
             message += "latest frame ranges from shotgun.\n\n"
-            message += "Previous start frame: %s\n" % current_in
-            message += "New start frame: %s\n\n" % new_in
-            message += "Previous end frame: %s\n" % current_out
-            message += "New end frame: %s\n\n" % new_out
+            message += "Previous start frame: %s (head: %s)\n" % (current_in, current_head)
+            message += "New start frame: %s (new head: %s)\n\n" % (new_in, new_head)
+            message += "Previous end frame: %s (tail: %s)\n" % (current_out, current_tail)
+            message += "New end frame: %s (new tail: %s)\n\n" % (new_out, new_tail)
 
             QtGui.QMessageBox.information(None, "Frame range updated!", message)
 
@@ -106,14 +106,14 @@ class SetFrameRange(Application):
     def get_frame_range_from_shotgun(self):
         """
         get_frame-range_from_shotgun will query shotgun for the
-            'sg_in_frame_field' and 'sg_out_frame_field' setting values and return a
-            tuple of (in, out).
+            'sg_in_frame_field', 'sg_out_frame_field', 'sg_head_in' and 'sg_tail_out' setting values and return a
+            tuple of (in, out, head, tail).
 
         If the fields specified in the settings do not exist in your Shotgun site, this will raise
             a tank.TankError letting you know which field is missing.
 
-        :returns: Tuple of (in, out)
-        :rtype: tuple[int,int]
+        :returns: Tuple of (in, out, head, tail)
+        :rtype: tuple[int,int,int,int]
         :raises: tank.TankError
         """
         # we know that this exists now (checked in init)
@@ -124,7 +124,10 @@ class SetFrameRange(Application):
 
         sg_in_field = self.get_setting("sg_in_frame_field")
         sg_out_field = self.get_setting("sg_out_frame_field")
-        fields = [sg_in_field, sg_out_field]
+        sg_head_field = self.get_setting("sg_head_frame_field")
+        sg_tail_field = self.get_setting("sg_tail_frame_field")
+
+        fields = [sg_in_field, sg_out_field, sg_head_field, sg_tail_field]
 
         data = self.shotgun.find_one(sg_entity_type, filters=sg_filters, fields=fields)
 
@@ -143,7 +146,21 @@ class SetFrameRange(Application):
                 "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_out_field)
             )
 
-        return (data[sg_in_field], data[sg_out_field])
+        if sg_head_field not in data:
+            raise tank.TankError(
+                "Configuration error: Your current context is connected to a Shotgun "
+                "%s. This entity type does not have a "
+                "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_head_field)
+            )
+
+        if sg_tail_field not in data:
+            raise tank.TankError(
+                "Configuration error: Your current context is connected to a Shotgun "
+                "%s. This entity type does not have a "
+                "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_tail_field)
+            )
+
+        return (data[sg_in_field], data[sg_out_field], data[sg_head_field], data[sg_tail_field])
 
     def get_current_frame_range(self):
         """
@@ -156,8 +173,8 @@ class SetFrameRange(Application):
         If the data returned is not in the correct format, tuple with two keys, it will
             also throw a tank.TankError exception.
 
-        :returns: Tuple of (in, out) frame range values.
-        :rtype: tuple[int,int]
+        :returns: Tuple of (in, out, head, tail) frame range values.
+        :rtype: tuple[int,int,int,int]
         :raises: tank.TankError
         """
         try:
@@ -172,17 +189,17 @@ class SetFrameRange(Application):
             )
 
         if not isinstance(result, tuple) or (
-            isinstance(result, tuple) and len(result) != 2
+            isinstance(result, tuple) and len(result) != 4
         ):
             raise tank.TankError(
                 "Unexpected type returned from 'hook_frame_operation' for operation get_"
-                "frame_range - expected a 'tuple' with (in_frame, out_frame) values but "
+                "frame_range - expected a 'tuple' with (in_frame, out_frame, head_frame, tail_frame) values but "
                 "returned '%s' : %s" % (type(result).__name__),
                 result,
             )
         return result
 
-    def set_frame_range(self, in_frame, out_frame):
+    def set_frame_range(self, in_frame, out_frame, head_frame, tail_frame):
         """
         set_current_frame_range will execute the hook specified in the 'hook_frame_operation'
             setting for this app.
@@ -201,6 +218,8 @@ class SetFrameRange(Application):
                 "set_frame_range",
                 in_frame=in_frame,
                 out_frame=out_frame,
+                head_frame=head_frame,
+                tail_frame=tail_frame
             )
         except Exception as err:
             error_message = traceback.format_exc()

@@ -33,6 +33,23 @@ configuration:
                      for this field on the entity associated with the current context (e.g.
                      the current shot, current asset etc).
 
+    sg_head_frame_field:
+        type: str
+        default_value: "sg_head_in"
+        description: The Shotgun field to use to retrieve the head frame. The app will look
+                     for this field on the entity associated with the current context (e.g.
+                     the current shot, current asset etc).
+
+    sg_tail_frame_field:
+        type: str
+        default_value: "sg_tail_out"
+        description: The Shotgun field to use to retrieve the tail frame. The app will look
+                     for this field on the entity associated with the current context (e.g.
+                     the current shot, current asset etc).
+
+
+
+
     # hooks
     hook_frame_operation:
         type: hook
