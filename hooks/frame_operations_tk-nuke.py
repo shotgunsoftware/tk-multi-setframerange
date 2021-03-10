@@ -35,10 +35,10 @@ class FrameOperation(HookBaseClass):
         current_tail = nuke.root()["last_frame"].value()
 
         Viewer = nuke.activeViewer().node()
-        if Viewer: 
+        if Viewer:
             val = Viewer['frame_range'].value()
             if val != '':
-                current_in, current_out = val.split("-") 
+                current_in, current_out = val.split("-")
                 current_in = int(current_in)
                 current_out = int(current_out)
             else:
