@@ -28,11 +28,15 @@ class FrameOperation(HookBaseClass):
         :returns: Returns the frame range in the form (in_frame, out_frame)
         :rtype: tuple[int, int]
         """
+
         current_in = cmds.playbackOptions(query=True, minTime=True)
         current_out = cmds.playbackOptions(query=True, maxTime=True)
-        return (current_in, current_out)
+        current_head = cmds.playbackOptions(query=True, animationStartTime=True)
+        current_tail = cmds.playbackOptions(query=True, animationEndTime=True)
 
-    def set_frame_range(self, in_frame=None, out_frame=None, **kwargs):
+        return (current_in, current_out, current_head, current_tail)
+
+    def set_frame_range(self, in_frame=None, out_frame=None, head_frame=None, tail_frame=None, **kwargs):
         """
         set_frame_range will set the frame range using `in_frame` and `out_frame`
 
@@ -42,6 +46,11 @@ class FrameOperation(HookBaseClass):
         :param int out_frame: out_frame for the current context
             (e.g. the current shot, current asset etc)
 
+        :param int head_frame: head_frame for the current context
+            (e.g. the current shot, current asset etc)
+
+        :param int tail_frame: tail_frame for the current context
+            (e.g. the current shot, current asset etc)
         """
 
         # set frame ranges for plackback

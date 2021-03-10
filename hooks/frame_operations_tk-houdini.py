@@ -29,11 +29,13 @@ class FrameOperation(HookBaseClass):
         :rtype: tuple[int, int]
         """
         current_in, current_out = hou.playbar.playbackRange()
-        return (current_in, current_out)
+        current_head = int(hou.text.expandString("$FSTART"))
+        current_tail = int(hou.text.expandString("$FEND"))
+        return (current_in, current_out, current_head, current_tail)
 
-    def set_frame_range(self, in_frame=None, out_frame=None, **kwargs):
+    def set_frame_range(self, in_frame=None, out_frame=None, head_frame=None, tail_frame=None, **kwargs):
         """
-        set_frame_range will set the frame range using `in_frame` and `out_frame`
+        set_frame_range will set the frame range using `in_frame` and `out_frame` and the head and tail
 
         :param int in_frame: in_frame for the current context
             (e.g. the current shot, current asset etc)
@@ -41,8 +43,13 @@ class FrameOperation(HookBaseClass):
         :param int out_frame: out_frame for the current context
             (e.g. the current shot, current asset etc)
 
+        :param int head_frame: head_frame for the current context
+            (e.g. the current shot, current asset etc)
+
+        :param int tail_frame: tail_frame for the current context
+            (e.g. the current shot, current asset etc)
         """
 
         # We have to use hscript until SideFX gets around to implementing hou.setGlobalFrameRange()
-        hou.hscript("tset `((%s-1)/$FPS)` `(%s/$FPS)`" % (in_frame, out_frame))
+        hou.hscript("tset `((%s-1)/$FPS)` `(%s/$FPS)`" % (head_frame, tail_frame))
         hou.playbar.setPlaybackRange(in_frame, out_frame)
