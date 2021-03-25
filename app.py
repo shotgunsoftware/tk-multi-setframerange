@@ -33,14 +33,6 @@ class SetFrameRange(Application):
         """
         App entry point
         """
-        # make sure that the context has an entity associated - otherwise it wont work!
-        if self.context.entity is None:
-            raise tank.TankError(
-                "Cannot load the Set Frame Range application! "
-                "Your current context does not have an entity (e.g. "
-                "a current Shot, current Asset etc). This app requires "
-                "an entity as part of the context in order to work."
-            )
 
         # We grab the menu name from the settings so that the user is able to register multiple instances
         # of this app with different frame range fields configured.
@@ -49,7 +41,7 @@ class SetFrameRange(Application):
     @property
     def context_change_allowed(self):
         """
-        Specifies that context changes are allowed.
+        Specifies that entity changes are allowed.
         """
         return True
 
@@ -59,7 +51,7 @@ class SetFrameRange(Application):
         """
         self.logger.debug("Destroying sg_set_frame_range")
 
-    def run_app(self):
+    def run_app(self, entity=None):
         """
         Callback from when the menu is clicked.
 
@@ -71,10 +63,10 @@ class SetFrameRange(Application):
 
         """
         try:
-            (new_in, new_out) = self.get_frame_range_from_shotgun()
-            (current_in, current_out) = self.get_current_frame_range()
+            new_frame_range = self.get_frame_range_from_shotgun(entity)
+            current_frame_range = self.get_current_frame_range()
 
-            if new_in is None or new_out is None:
+            if new_frame_range.get('cut_in') is None or new_frame_range.get('cut_out') is None:
                 message = "Shotgun has not yet been populated with \n"
                 message += "in and out frame data for this Shot."
                 QtGui.QMessageBox.information(None, "No data in Shotgun!", message)
@@ -84,13 +76,19 @@ class SetFrameRange(Application):
             # because the frame range is often set in multiple places (e.g render range,
             # current range, anim range etc), we go ahead an update every time, even if the values
             # in Shotgun are the same as the values reported via get_current_frame_range()
-            self.set_frame_range(new_in, new_out)
+            self.set_frame_range(new_frame_range.get('cut_in'), new_frame_range.get('cut_out'), head_in=new_frame_range.get('head_in'), tail_out=new_frame_range.get('tail_out'))
             message = "Your scene has been updated with the \n"
             message += "latest frame ranges from shotgun.\n\n"
-            message += "Previous start frame: %s\n" % current_in
-            message += "New start frame: %s\n\n" % new_in
-            message += "Previous end frame: %s\n" % current_out
-            message += "New end frame: %s\n\n" % new_out
+            if current_frame_range.get('head_in') or new_frame_range.get('head_in'):
+                message += "Previous head in frame: {}\n".format(current_frame_range.get('head_in'))
+                message += "New head in frame: {}\n\n".format(new_frame_range.get('head_in'))
+            message += "Previous start frame: {}\n".format(current_frame_range.get('cut_in'))
+            message += "New start frame: {}\n\n".format(new_frame_range.get('cut_in'))
+            message += "Previous end frame: {}\n".format(current_frame_range.get('cut_out'))
+            message += "New end frame: {}\n\n".format(new_frame_range.get('cut_out'))
+            if current_frame_range.get('tail_out') or new_frame_range.get('tail_out'):
+                message += "Previous tail out frame: {}\n".format(current_frame_range.get('tail_out'))
+                message += "New tail out frame: {}\n\n".format(new_frame_range.get('tail_out'))
 
             QtGui.QMessageBox.information(None, "Frame range updated!", message)
 
@@ -103,61 +101,91 @@ class SetFrameRange(Application):
     ###############################################################################################
     # implementation
 
-    def get_frame_range_from_shotgun(self):
+    def get_frame_range_from_shotgun(self, entity=None):
         """
         get_frame-range_from_shotgun will query shotgun for the
-            'sg_in_frame_field' and 'sg_out_frame_field' setting values and return a
-            tuple of (in, out).
+            'sg_head_in_field', 'sg_cut_in_frame_field', 'sg_cut_out_frame_field', 'sg_tail_out_field' 
+            setting values and return a
+            dict of (str: int): head_in, in, out, tail_out
 
         If the fields specified in the settings do not exist in your Shotgun site, this will raise
             a tank.TankError letting you know which field is missing.
 
-        :returns: Tuple of (in, out)
-        :rtype: tuple[int,int]
+        :returns: data (dict of str: int): head_in, in, out, tail_out
+        :rtype: dict()
         :raises: tank.TankError
         """
-        # we know that this exists now (checked in init)
-        entity = self.context.entity
 
-        sg_entity_type = self.context.entity["type"]
+        if entity is None:
+            pass
+            # entity = self.entity
+
+        # make sure that the entity has an entity associated - otherwise it wont work!
+        if entity is None:
+            raise tank.TankError(
+                "Cannot Set Frame Range"
+                "Your current scene does not have an entity (e.g. "
+                "a current Shot, current Asset etc). This app requires "
+                "an scene as part of the entity in order to work."
+            )
+
+        sg_entity_type = entity["type"]
         sg_filters = [["id", "is", entity["id"]]]
 
-        sg_in_field = self.get_setting("sg_in_frame_field")
-        sg_out_field = self.get_setting("sg_out_frame_field")
-        fields = [sg_in_field, sg_out_field]
+        sg_head_in_field = 'sg_head_in'
+        if self.get_setting("sg_head_in_field"):
+            sg_head_in_field = self.get_setting("sg_head_in_field")
+
+        sg_cut_in_field = 'sg_cut_in'
+        if self.get_setting("sg_cut_in_frame_field"):
+            sg_cut_in_field = self.get_setting("sg_cut_in_frame_field")
+        sg_cut_out_field = 'sg_cut_out'
+        if self.get_setting("sg_cut_out_frame_field"):
+            sg_cut_out_field = self.get_setting("sg_cut_out_frame_field")
+
+        sg_tail_out_field = 'sg_tail_out'
+        if self.get_setting("sg_tail_out_field"):
+            sg_tail_out_field = self.get_setting("sg_tail_out_field")
+        fields = [sg_head_in_field, sg_tail_out_field, sg_cut_in_field, sg_cut_out_field]
 
         data = self.shotgun.find_one(sg_entity_type, filters=sg_filters, fields=fields)
 
         # check if fields exist!
-        if sg_in_field not in data:
+        if sg_cut_in_field not in data:
             raise tank.TankError(
-                "Configuration error: Your current context is connected to a Shotgun "
-                "%s. This entity type does not have a "
-                "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_in_field)
+                "Configuration error: Your current entity is connected to a Shotgun "
+                "{}. This entity type does not have a "
+                "field {}.{}!".format(entity, sg_entity_type, sg_cut_in_field)
             )
 
-        if sg_out_field not in data:
+        if sg_cut_out_field not in data:
             raise tank.TankError(
-                "Configuration error: Your current context is connected to a Shotgun "
-                "%s. This entity type does not have a "
-                "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_out_field)
+                "Configuration error: Your current entity is connected to a Shotgun "
+                "{}. This entity type does not have a "
+                "field {}.{}!".format(entity, sg_cut_in_field, sg_cut_out_field)
             )
 
-        return (data[sg_in_field], data[sg_out_field])
+        result = {
+            'head_in': data[sg_head_in_field], 
+            'cut_in': data[sg_cut_in_field], 
+            'cut_out': data[sg_cut_out_field], 
+            'tail_out': data[sg_tail_out_field]
+        }
+        return result
 
     def get_current_frame_range(self):
         """
         get_current_frame_range will execute the hook specified in the 'hook_frame_operation'
             setting for this app.
-        It will record the result of the hook and return the values as a tuple of (in, out).
+        It will record the result of the hook and return the values as a dict of (str: int).
 
         If there is an internal exception thrown from the hook, it will reraise the exception as
             a tank.TankError and write the traceback to the log.
-        If the data returned is not in the correct format, tuple with two keys, it will
+        If the data returned is not in the correct format, dict with at least two keys, it will
             also throw a tank.TankError exception.
 
-        :returns: Tuple of (in, out) frame range values.
-        :rtype: tuple[int,int]
+        :returns: data (dict of str: int): head_in, in, out, tail_out
+        :rtype: dict()
         :raises: tank.TankError
         """
         try:
@@ -166,27 +194,25 @@ class SetFrameRange(Application):
             error_message = traceback.format_exc()
             self.logger.error(error_message)
             raise tank.TankError(
-                "Encountered an error while getting the frame range: {}".format(
-                    str(err)
-                )
+                "Encountered an error while getting the frame range: {}".format(str(err))
             )
 
-        if not isinstance(result, tuple) or (
-            isinstance(result, tuple) and len(result) != 2
+        if not isinstance(result, dict) or (
+            isinstance(result, dict) and len(result) < 2
         ):
             raise tank.TankError(
                 "Unexpected type returned from 'hook_frame_operation' for operation get_"
-                "frame_range - expected a 'tuple' with (in_frame, out_frame) values but "
-                "returned '%s' : %s" % (type(result).__name__),
+                "frame_range - expected a 'dictionary' with in_frame, out_frame values but "
+                "returned '{} {}".format(result, (type(result).__name__)),
                 result,
             )
         return result
 
-    def set_frame_range(self, in_frame, out_frame):
+    def set_frame_range(self, cut_in, cut_out, head_in=None, tail_out=None):
         """
         set_current_frame_range will execute the hook specified in the 'hook_frame_operation'
             setting for this app.
-        It will pass the 'in_frame' and 'out_frame' to the hook.
+        It will pass the 'cut_in' and 'cut_out' to the hook.
 
         If there is an internal exception thrown from the hook, it will reraise the exception as
             a tank.TankError and write the traceback to the log.
@@ -199,14 +225,14 @@ class SetFrameRange(Application):
             self.execute_hook_method(
                 "hook_frame_operation",
                 "set_frame_range",
-                in_frame=in_frame,
-                out_frame=out_frame,
+                cut_in=cut_in,
+                cut_out=cut_out,
+                head_in=head_in,
+                tail_out=tail_out,
             )
         except Exception as err:
             error_message = traceback.format_exc()
             self.logger.error(error_message)
             raise tank.TankError(
-                "Encountered an error while setting the frame range: {}".format(
-                    str(err)
-                )
+                "Encountered an error while setting the frame range: {}".format(str(err))
             )

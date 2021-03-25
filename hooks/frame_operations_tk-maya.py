@@ -23,35 +23,48 @@ class FrameOperation(HookBaseClass):
 
     def get_frame_range(self, **kwargs):
         """
-        get_frame_range will return a tuple of (in_frame, out_frame)
+        get_frame_range will return a dictionary of head_cut_in, cut_in, cut_out, tail_out
 
-        :returns: Returns the frame range in the form (in_frame, out_frame)
-        :rtype: tuple[int, int]
+        :returns: data (dict of str: int): head_in, cut_in, cut_out, tail_out
+        :rtype: dict()
+        :raises: tank.TankError
         """
-        current_in = cmds.playbackOptions(query=True, minTime=True)
-        current_out = cmds.playbackOptions(query=True, maxTime=True)
-        return (current_in, current_out)
+        result = {}
+        result['head_in'] = cmds.playbackOptions(query=True, minTime=True)
+        result['cut_in'] = cmds.playbackOptions(query=True, animationStartTime=True)
+        result['cut_out'] = cmds.playbackOptions(query=True, maxTime=True)
+        result['tail_out'] = cmds.playbackOptions(query=True, animationEndTime=True)
+        return result
 
-    def set_frame_range(self, in_frame=None, out_frame=None, **kwargs):
+    def set_frame_range(self, cut_in=None, cut_out=None, **kwargs):
         """
-        set_frame_range will set the frame range using `in_frame` and `out_frame`
+        set_frame_range will set the frame range using `cut_in` and `cut_out`
 
-        :param int in_frame: in_frame for the current context
+        :param int cut_in: cut_in for the current context
             (e.g. the current shot, current asset etc)
 
-        :param int out_frame: out_frame for the current context
+        :param int cut_out: cut_out for the current context
             (e.g. the current shot, current asset etc)
 
         """
+
+        min_cut_in = cut_in
+        max_cut_out = cut_out
+
+        for key, value in kwargs.items():
+            if 'head' in key:
+                min_cut_in = value
+            elif 'tail' in key:
+                max_cut_out = value
 
         # set frame ranges for plackback
         cmds.playbackOptions(
-            minTime=in_frame,
-            maxTime=out_frame,
-            animationStartTime=in_frame,
-            animationEndTime=out_frame,
+            minTime=min_cut_in,
+            maxTime=max_cut_out,
+            animationStartTime=cut_in,
+            animationEndTime=cut_out,
         )
 
         # set frame ranges for rendering
-        cmds.setAttr("defaultRenderGlobals.startFrame", in_frame)
-        cmds.setAttr("defaultRenderGlobals.endFrame", out_frame)
+        cmds.setAttr("defaultRenderGlobals.startFrame", cut_in)
+        cmds.setAttr("defaultRenderGlobals.endFrame", cut_out)
