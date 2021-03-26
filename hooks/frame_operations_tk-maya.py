@@ -21,6 +21,13 @@ class FrameOperation(HookBaseClass):
     current scene
     """
 
+    def get_entity(self):
+        entity = {}
+        if cmds.ls('dvs_data'):
+            entity['id'] = cmds.getAttr('dvs_data.dvs_asset')
+            entity['type'] = 'Shot'
+        return entity
+
     def get_frame_range(self, **kwargs):
         """
         get_frame_range will return a dictionary of head_cut_in, cut_in, cut_out, tail_out
@@ -36,7 +43,7 @@ class FrameOperation(HookBaseClass):
         result['tail_out'] = cmds.playbackOptions(query=True, animationEndTime=True)
         return result
 
-    def set_frame_range(self, cut_in=None, cut_out=None, **kwargs):
+    def set_frame_range(self, cut_in, cut_out, **kwargs):
         """
         set_frame_range will set the frame range using `cut_in` and `cut_out`
 
@@ -47,22 +54,21 @@ class FrameOperation(HookBaseClass):
             (e.g. the current shot, current asset etc)
 
         """
-
-        min_cut_in = cut_in
-        max_cut_out = cut_out
+        head_in = cut_in
+        tail_out = cut_out
 
         for key, value in kwargs.items():
             if 'head' in key:
-                min_cut_in = value
-            elif 'tail' in key:
-                max_cut_out = value
+                head_in = value
+            if 'tail' in key:
+                tail_out = value
 
         # set frame ranges for plackback
         cmds.playbackOptions(
-            minTime=min_cut_in,
-            maxTime=max_cut_out,
-            animationStartTime=cut_in,
-            animationEndTime=cut_out,
+            ast=head_in,
+            minTime=cut_in,
+            maxTime=cut_out,
+            aet=tail_out
         )
 
         # set frame ranges for rendering

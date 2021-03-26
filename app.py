@@ -63,6 +63,7 @@ class SetFrameRange(Application):
 
         """
         try:
+            entity = self.get_entity()
             new_frame_range = self.get_frame_range_from_shotgun(entity)
             current_frame_range = self.get_current_frame_range()
 
@@ -79,16 +80,10 @@ class SetFrameRange(Application):
             self.set_frame_range(new_frame_range.get('cut_in'), new_frame_range.get('cut_out'), head_in=new_frame_range.get('head_in'), tail_out=new_frame_range.get('tail_out'))
             message = "Your scene has been updated with the \n"
             message += "latest frame ranges from shotgun.\n\n"
-            if current_frame_range.get('head_in') or new_frame_range.get('head_in'):
-                message += "Previous head in frame: {}\n".format(current_frame_range.get('head_in'))
-                message += "New head in frame: {}\n\n".format(new_frame_range.get('head_in'))
-            message += "Previous start frame: {}\n".format(current_frame_range.get('cut_in'))
-            message += "New start frame: {}\n\n".format(new_frame_range.get('cut_in'))
-            message += "Previous end frame: {}\n".format(current_frame_range.get('cut_out'))
-            message += "New end frame: {}\n\n".format(new_frame_range.get('cut_out'))
-            if current_frame_range.get('tail_out') or new_frame_range.get('tail_out'):
-                message += "Previous tail out frame: {}\n".format(current_frame_range.get('tail_out'))
-                message += "New tail out frame: {}\n\n".format(new_frame_range.get('tail_out'))
+          
+            message += "{:^10}{:^18}{:^16}{:^16}\n".format("Head In", "Cut In", "Cut Out", "Tail Out").expandtabs(7)
+            message += "{head_in:^18.1f}{cut_in:^18.1f}{cut_out:^18.1f}{tail_out:^18.1f}\t==> Previous Frames\n".format(**current_frame_range).expandtabs(8)
+            message += "{head_in:^18.1f}{cut_in:^18.1f}{cut_out:^18.1f}{tail_out:^18.1f}\t==> Updated Frames".format(**new_frame_range).expandtabs(8)
 
             QtGui.QMessageBox.information(None, "Frame range updated!", message)
 
@@ -100,6 +95,31 @@ class SetFrameRange(Application):
 
     ###############################################################################################
     # implementation
+    def get_entity(self):
+        """
+        get enitty from scene
+
+        :returns: data (dict of str: int)
+        :rtype: dict()
+        :raises: tank.TankError
+        """
+        try:
+            result = self.execute_hook_method("hook_frame_operation", "get_entity")
+        except Exception as err:
+            error_message = traceback.format_exc()
+            self.logger.error(error_message)
+            raise tank.TankError(
+                "Encountered an error while getting the frame range: {}".format(str(err))
+            )
+
+        if not isinstance(result, dict):
+            raise tank.TankError(
+                "Unexpected type returned from 'hook_frame_operation' for operation get_"
+                "frame_range - expected a 'dictionary' with in_frame, out_frame values but "
+                "returned '{} {}".format(result, (type(result).__name__)),
+                result,
+            )
+        return result    
 
     def get_frame_range_from_shotgun(self, entity=None):
         """
