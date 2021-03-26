@@ -22,7 +22,7 @@ import tank
 
 class SetFrameRange(Application):
     """
-    tk-multi-setframerange is a Shotgun toolkit application that allows you to set and get the
+    dvs-multi-setframerange is a Shotgun toolkit application that allows you to set and get the
         frame range from shotgun regardless of your specific DCC application.
 
     Standard applications come implemented for you but you are able to implement support for
@@ -62,10 +62,21 @@ class SetFrameRange(Application):
             queried data and popup a QMessageBox with results.
 
         """
-        try:
+        if not entity:
             entity = self.get_entity()
+        
+        if not entity.get('id') and not self.get_scene_filename():
+            message = "This tool requires an existing scene opened and the scene is associated with a Shot in Shotgun.\n"
+            QtGui.QMessageBox.warning(None, "Sync Frame Range not run!", message)
+            return
+
+        try:
             new_frame_range = self.get_frame_range_from_shotgun(entity)
             current_frame_range = self.get_current_frame_range()
+
+            if new_frame_range == current_frame_range:
+                self.logger.info('Frame range matches Shotgun: {head_in}, {cut_in}, {cut_out}, {tail_out}'.format(**current_frame_range))
+                return
 
             if new_frame_range.get('cut_in') is None or new_frame_range.get('cut_out') is None:
                 message = "Shotgun has not yet been populated with \n"
@@ -81,11 +92,16 @@ class SetFrameRange(Application):
             message = "Your scene has been updated with the \n"
             message += "latest frame ranges from shotgun.\n\n"
           
-            message += "{:^10}{:^18}{:^16}{:^16}\n".format("Head In", "Cut In", "Cut Out", "Tail Out").expandtabs(7)
-            message += "{head_in:^18.1f}{cut_in:^18.1f}{cut_out:^18.1f}{tail_out:^18.1f}\t==> Previous Frames\n".format(**current_frame_range).expandtabs(8)
-            message += "{head_in:^18.1f}{cut_in:^18.1f}{cut_out:^18.1f}{tail_out:^18.1f}\t==> Updated Frames".format(**new_frame_range).expandtabs(8)
+            message += "{:^5}{:^18}  {:^16} {:^16}\n\n".format("Head In", "Cut In", "Cut Out", "Tail Out").expandtabs(7)
+            message += "              {render_in:^18.1f}{render_out:^18.1f}                         ==> Previous Render Frames\n".format(**current_frame_range).expandtabs(8)
+            message += "{head_in:^10.1f}{cut_in:^18.1f}{cut_out:^18.1f}{tail_out:^18.1f}  ==> Previous Timeline\n\n".format(**current_frame_range).expandtabs(8)
+            message += "{head_in:^10.1f}{cut_in:^18.1f}{cut_out:^18.1f}{tail_out:^18.1f}  ==> Updated Frames".format(**new_frame_range).expandtabs(8)
 
             QtGui.QMessageBox.information(None, "Frame range updated!", message)
+            self.logger.info('Previous Render Frames: {render_in}, {render_out}'.format(**current_frame_range))
+            self.logger.info('Previous Timeline: {head_in}, {cut_in}, {cut_out}, {tail_out}'.format(**current_frame_range))
+            self.logger.info('Updated Frames: {head_in}, {cut_in}, {cut_out}, {tail_out}'.format(**new_frame_range))
+
 
         except tank.TankError:
             message = "There was a problem updating your scene frame range.\n"
@@ -97,7 +113,7 @@ class SetFrameRange(Application):
     # implementation
     def get_entity(self):
         """
-        get enitty from scene
+        get entity from scene
 
         :returns: data (dict of str: int)
         :rtype: dict()
@@ -109,14 +125,38 @@ class SetFrameRange(Application):
             error_message = traceback.format_exc()
             self.logger.error(error_message)
             raise tank.TankError(
-                "Encountered an error while getting the frame range: {}".format(str(err))
+                "Encountered an error while getting the entity: {}".format(str(err))
             )
 
         if not isinstance(result, dict):
             raise tank.TankError(
                 "Unexpected type returned from 'hook_frame_operation' for operation get_"
-                "frame_range - expected a 'dictionary' with in_frame, out_frame values but "
-                "returned '{} {}".format(result, (type(result).__name__)),
+                "entity - expected a 'dictionary' with 'type' and 'id{} {}".format(result, (type(result).__name__)),
+                result,
+            )
+        return result    
+
+    def get_scene_filename(self):
+        """
+        get scene filename from current scene
+
+        :returns: unicode
+        :rtype: unicode
+        :raises: tank.TankError
+        """
+        try:
+            result = self.execute_hook_method("hook_frame_operation", "get_scene_filename")
+        except Exception as err:
+            error_message = traceback.format_exc()
+            self.logger.error(error_message)
+            raise tank.TankError(
+                "Encountered an error while getting the scene filename: {}".format(str(err))
+            )
+
+        if not isinstance(result, unicode):
+            raise tank.TankError(
+                "Unexpected type returned from 'hook_frame_operation' for operation get_"
+                "scene_filename - expected a string'{} {}".format(result, (type(result).__name__)),
                 result,
             )
         return result    
@@ -136,19 +176,6 @@ class SetFrameRange(Application):
         :raises: tank.TankError
         """
 
-        if entity is None:
-            pass
-            # entity = self.entity
-
-        # make sure that the entity has an entity associated - otherwise it wont work!
-        if entity is None:
-            raise tank.TankError(
-                "Cannot Set Frame Range"
-                "Your current scene does not have an entity (e.g. "
-                "a current Shot, current Asset etc). This app requires "
-                "an scene as part of the entity in order to work."
-            )
-
         sg_entity_type = entity["type"]
         sg_filters = [["id", "is", entity["id"]]]
 
@@ -166,9 +193,22 @@ class SetFrameRange(Application):
         sg_tail_out_field = 'sg_tail_out'
         if self.get_setting("sg_tail_out_field"):
             sg_tail_out_field = self.get_setting("sg_tail_out_field")
-        fields = [sg_head_in_field, sg_tail_out_field, sg_cut_in_field, sg_cut_out_field]
+        fields = ['code', sg_head_in_field, sg_tail_out_field, sg_cut_in_field, sg_cut_out_field]
 
         data = self.shotgun.find_one(sg_entity_type, filters=sg_filters, fields=fields)
+
+        # check shot name matches scene file name
+        if data is None:
+            raise tank.TankError(
+                "Configuration error: No entity found in Shotgun for {}, id: {}".format(sg_entity_type, entity['id'])
+            ) 
+        else:
+            if data and not self.get_scene_filename() != data.get('code'):
+                raise tank.TankError(
+                    "Configuration error: Your current scene does not match"
+                    " the Shotgun {} name of {}".format(data.get('type'), data.get('code'))
+                )
+
 
         # check if fields exist!
         if sg_cut_in_field not in data:
@@ -189,7 +229,9 @@ class SetFrameRange(Application):
             'head_in': data[sg_head_in_field], 
             'cut_in': data[sg_cut_in_field], 
             'cut_out': data[sg_cut_out_field], 
-            'tail_out': data[sg_tail_out_field]
+            'tail_out': data[sg_tail_out_field],
+            'render_in': data[sg_cut_in_field],
+            'render_out': data[sg_cut_out_field]
         }
         return result
 
