@@ -9,7 +9,7 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 import maya.cmds as cmds
-
+import os
 import sgtk
 
 HookBaseClass = sgtk.get_hook_baseclass()
@@ -28,6 +28,18 @@ class FrameOperation(HookBaseClass):
             entity['type'] = 'Shot'
         return entity
 
+    def get_scene_filename(self):
+        return os.path.basename(cmds.file(q=1, sceneName=True))
+
+    # def shot_name_matches_scene(self, shot_name):
+    #     scene_filename = os.path.basename(cmds.file(q=1, sceneName=True))
+    #     print('SG Shot Name: {}'.format(shot_name))
+    #     print('Scene Name: {}'.format(scene_filename))
+    #     if shot_name in scene_filename or not scene_filename:
+    #         return True
+    #     else:
+    #         return False
+
     def get_frame_range(self, **kwargs):
         """
         get_frame_range will return a dictionary of head_cut_in, cut_in, cut_out, tail_out
@@ -37,10 +49,12 @@ class FrameOperation(HookBaseClass):
         :raises: tank.TankError
         """
         result = {}
-        result['head_in'] = cmds.playbackOptions(query=True, minTime=True)
-        result['cut_in'] = cmds.playbackOptions(query=True, animationStartTime=True)
+        result['head_in'] = cmds.playbackOptions(query=True, animationStartTime=True)
+        result['cut_in'] = cmds.playbackOptions(query=True, minTime=True)
         result['cut_out'] = cmds.playbackOptions(query=True, maxTime=True)
         result['tail_out'] = cmds.playbackOptions(query=True, animationEndTime=True)
+        result['render_in'] = cmds.getAttr("defaultRenderGlobals.startFrame")
+        result['render_out'] = cmds.getAttr("defaultRenderGlobals.endFrame")
         return result
 
     def set_frame_range(self, cut_in, cut_out, **kwargs):
