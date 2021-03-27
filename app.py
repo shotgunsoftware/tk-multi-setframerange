@@ -119,7 +119,7 @@ class SetFrameRange(Application):
         :raises: tank.TankError
         """
         try:
-            result = self.execute_hook_method("hook_frame_operation", "get_entity")
+            result = self.execute_hook_method("hook_frame_operation", "get_entity", entity_type=entity_type)
         except Exception as err:
             error_message = traceback.format_exc()
             self.logger.error(error_message)
