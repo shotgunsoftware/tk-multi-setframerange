@@ -1,12 +1,6 @@
-# Copyright (c) 2013 Shotgun Software Inc.
-#
-# CONFIDENTIAL AND PROPRIETARY
-#
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
-# Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
-# not expressly granted therein are reserved by Shotgun Software Inc.
+# Copyright (c) 2021 DreamView
+# Orginal Author: Shotgun Software
+# Modifications: Mark Thielen
 
 """
 An app that syncs the frame range between a scene and a shot in Shotgun.
@@ -61,7 +55,10 @@ class SetFrameRange(Application):
         Assuming all data exists in shotgun, it will set the frame range with the newly
             queried data and popup a QMessageBox with results.
 
+        Args:
+            entity (dict, optional): The entity dictionary with 'id' and 'type'.
         """
+
         if not entity:
             entity = self.get_entity()
         
@@ -109,9 +106,11 @@ class SetFrameRange(Application):
             error_message = traceback.format_exc()
             self.logger.error(error_message)
 
+
     ###############################################################################################
     # implementation
-    def get_entity(self):
+
+    def get_entity(self, entity_type='Shot'):
         """
         get entity from scene
 
