@@ -19,16 +19,30 @@ configuration:
         default_value: "Sync Frame Range with Shotgun"
         description: The name that will be shown in the Shotgun menu.
 
-    sg_in_frame_field:
+    sg_head_in_field:
+        type: str
+        default_value: "sg_head_in"
+        description: The Shotgun field to use to retrieve the in frame. The app will look
+                     for this field on the entity associated with the current context (e.g.
+                     the current shot, current asset etc).
+
+    sg_cut_in_frame_field:
         type: str
         default_value: "sg_cut_in"
         description: The Shotgun field to use to retrieve the in frame. The app will look
                      for this field on the entity associated with the current context (e.g.
                      the current shot, current asset etc).
 
-    sg_out_frame_field:
+    sg_cut_out_frame_field:
         type: str
         default_value: "sg_cut_out"
+        description: The Shotgun field to use to retrieve the out frame. The app will look
+                     for this field on the entity associated with the current context (e.g.
+                     the current shot, current asset etc).
+
+    sg_tail_out_field:
+        type: str
+        default_value: "sg_tail_out"
         description: The Shotgun field to use to retrieve the out frame. The app will look
                      for this field on the entity associated with the current context (e.g.
                      the current shot, current asset etc).
