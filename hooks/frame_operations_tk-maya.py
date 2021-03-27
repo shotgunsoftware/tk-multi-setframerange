@@ -1,12 +1,6 @@
-# Copyright (c) 2013 Shotgun Software Inc.
-#
-# CONFIDENTIAL AND PROPRIETARY
-#
-# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
-# Source Code License included in this distribution package. See LICENSE.
-# By accessing, using, copying or modifying this work you indicate your
-# agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
-# not expressly granted therein are reserved by Shotgun Software Inc.
+# Copyright (c) 2021 DreamView
+# Orginal Author: Shotgun Software
+# Modifications: Mark Thielen
 
 import maya.cmds as cmds
 import os
@@ -21,24 +15,31 @@ class FrameOperation(HookBaseClass):
     current scene
     """
 
-    def get_entity(self):
+    def get_entity(self, entity_type='Shot'):
+        """Get an entity id from the dvs_data node embedded in the maya scene if it exists.\n
+        Search scene using cmds.ls('dvs_data')\n
+        The dvs_asset attribute could be any entity in Shotgun. \n
+        This forces the type to 'Shot' by default.
+
+        Args:
+            entity_type (str, optional): The type of entity to set. Defaults to 'Shot'.
+        Returns:
+            dict: dict of 'id' and 'type'
+        """        
         entity = {}
         if cmds.ls('dvs_data'):
             entity['id'] = cmds.getAttr('dvs_data.dvs_asset')
-            entity['type'] = 'Shot'
+            entity['type'] = entity_type
         return entity
 
     def get_scene_filename(self):
-        return os.path.basename(cmds.file(q=1, sceneName=True))
+        """Get the current scene filename without the folder.\n
+        i.e. scene.ma or scene.mb
 
-    # def shot_name_matches_scene(self, shot_name):
-    #     scene_filename = os.path.basename(cmds.file(q=1, sceneName=True))
-    #     print('SG Shot Name: {}'.format(shot_name))
-    #     print('Scene Name: {}'.format(scene_filename))
-    #     if shot_name in scene_filename or not scene_filename:
-    #         return True
-    #     else:
-    #         return False
+        Returns:
+            str: Scene filename
+        """        
+        return os.path.basename(cmds.file(q=1, sceneName=True))
 
     def get_frame_range(self, **kwargs):
         """
