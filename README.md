@@ -3,18 +3,39 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Linting](https://img.shields.io/badge/PEP8%20by-Hound%20CI-a873d1.svg)](https://houndci.com)
 
-## Documentation
-This repository is a part of the Shotgun Pipeline Toolkit.
 
-- For more information about this app and for release notes, *see the wiki section*.
-- For general information and documentation, click here: https://support.shotgunsoftware.com/entries/95441257
-- For information about Shotgun in general, click here: http://www.shotgunsoftware.com/toolkit
+## Set Frame Range app
+This has been forked from Shotgun's GitHub tk-multi-setframerange.
 
-## Using this app in your Setup
-All the apps that are part of our standard app suite are pushed to our App Store.
-This is where you typically go if you want to install an app into a project you are
-working on. For an overview of all the Apps and Engines in the Toolkit App Store,
-click here: https://support.shotgunsoftware.com/entries/95441247.
+- Works in Maya only.
+- Loads no matter if there is a scene open or not.
+- Accepts an entity dictionary consisting of 'id' and 'type'.
+- If a valid entity, Shot, is found then the "Head In", "Cut In", "Cut Out", and "Tail Out" field values for the given entity (Shot) will be returned.
+- The timeline will be updated if the values are different than the Shotgun values.
+- "Head In" updates Maya timeline animation start.
+- "Cut In" updates Maya timeline minTime and render start.
+- "Cut Out" updates Maya timeline maxTime and render end.
+- "Tail Out" updates Maya timeline animation end.
 
-## Have a Question?
-Don't hesitate to contact us! You can find us on support@shotgunsoftware.com
+### Incorporating in other apps
+**checkio**
+
+This code assumes a file is open and contains the `dvs_root` data node. The entity will be filled in automatically if the `dvs_root` node is a valid Shot entity and id.
+
+```
+# set frame range
+import sgtk
+engine = sgtk.platform.current_engine()
+if 'dvs-multi-setframerange' in engine.apps.keys():
+    engine.apps['ds-multi-setframerange'].run_app()
+```
+
+### python console/script editor
+```
+# set frame range
+import sgtk
+engine = sgtk.platform.current_engine()
+if 'dvs-multi-setframerange' in engine.apps.keys():
+    entity_id = int()
+    engine.apps['ds-multi-setframerange'].run_app(entity={'id': entity_id, 'type': 'Shot')
+```
