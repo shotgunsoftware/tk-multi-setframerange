@@ -62,8 +62,8 @@ class SetFrameRange(Application):
         if not entity:
             entity = self.get_entity()
         
-        if not entity.get('id') and not self.get_scene_filename():
-            message = "This tool requires an existing scene opened and the scene is associated with a Shot in Shotgun.\n"
+        if not entity.get('id'):
+            message = "This tool requires an existing scene opened and the scene is associated with a Shot in Shotgun. Check In current file and try again.\n"
             QtGui.QMessageBox.warning(None, "Sync Frame Range not run!", message)
             return
 
