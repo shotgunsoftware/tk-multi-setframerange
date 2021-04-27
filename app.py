@@ -71,9 +71,6 @@ class SetFrameRange(Application):
             new_frame_range = self.get_frame_range_from_shotgun(entity)
             current_frame_range = self.get_current_frame_range()
 
-            if new_frame_range == current_frame_range:
-                self.logger.info('Frame range matches Shotgun: {head_in}, {cut_in}, {cut_out}, {tail_out}'.format(**current_frame_range))
-                return
 
             if new_frame_range.get('cut_in') is None or new_frame_range.get('cut_out') is None:
                 message = "Shotgun has not yet been populated with \n"
@@ -81,6 +78,15 @@ class SetFrameRange(Application):
                 QtGui.QMessageBox.information(None, "No data in Shotgun!", message)
                 return
 
+            if new_frame_range.get('head_in') is None:
+                new_frame_range['head_in'] = new_frame_range['cut_in']
+            if new_frame_range.get('tail_out') is None:
+                new_frame_range['tail_out'] = new_frame_range['cut_out']
+
+            if new_frame_range == current_frame_range:
+                self.logger.info('Frame range matches Shotgun: {head_in}, {cut_in}, {cut_out}, {tail_out}'.format(**current_frame_range))
+                return
+                
             # now update the frame range.
             # because the frame range is often set in multiple places (e.g render range,
             # current range, anim range etc), we go ahead an update every time, even if the values
