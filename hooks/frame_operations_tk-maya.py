@@ -73,10 +73,11 @@ class FrameOperation(HookBaseClass):
         tail_out = cut_out
 
         for key, value in kwargs.items():
-            if 'head' in key:
-                head_in = value
-            if 'tail' in key:
-                tail_out = value
+            if value is not None:
+                if 'head' in key:
+                    head_in = value
+                elif 'tail' in key:
+                    tail_out = value
 
         # set frame ranges for plackback
         cmds.playbackOptions(
