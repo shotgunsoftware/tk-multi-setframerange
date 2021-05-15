@@ -15,7 +15,7 @@ class FrameOperation(HookBaseClass):
     current scene
     """
 
-    def get_entity(self, entity_type='Shot'):
+    def get_entity(self, entity_type=None):
         """Get an entity id from the dvs_data node embedded in the maya scene if it exists.\n
         Search scene using cmds.ls('dvs_data')\n
         The dvs_asset attribute could be any entity in Shotgun. \n
@@ -29,6 +29,7 @@ class FrameOperation(HookBaseClass):
         entity = {}
         if cmds.ls('dvs_data'):
             entity['id'] = cmds.getAttr('dvs_data.dvs_asset')
+            entity['task'] = cmds.getAttr('dvs_data.dvs_task')
             entity['type'] = entity_type
         return entity
 

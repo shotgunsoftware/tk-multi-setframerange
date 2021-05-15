@@ -13,7 +13,6 @@ from tank.platform import Application
 from tank.platform.qt import QtCore, QtGui
 import tank
 
-
 class SetFrameRange(Application):
     """
     dvs-multi-setframerange is a Shotgun toolkit application that allows you to set and get the
@@ -61,10 +60,15 @@ class SetFrameRange(Application):
 
         if not entity:
             entity = self.get_entity()
+
+        if not entity.get('type'):
+            task = self.shotgun.find_one('Task', [['id', 'is', entity.get('task')]], ['sg_deliverable_link'])
+            if task.get('sg_deliverable_link').get('type'):
+                entity['type'] = task.get('sg_deliverable_link').get('type')
         
-        if not entity.get('id'):
-            message = "This tool requires an existing scene opened and the scene is associated with a Shot in Shotgun. Check In current file and try again.\n"
-            QtGui.QMessageBox.warning(None, "Sync Frame Range not run!", message)
+        if entity.get('type') != 'Shot':
+            # message = "This tool requires an existing scene opened and the scene is associated with a Shot in Shotgun. Check In current file and try again.\n"
+            # QtGui.QMessageBox.warning(None, "Sync Frame Range not run!", message)
             return
 
         try:
@@ -116,7 +120,7 @@ class SetFrameRange(Application):
     ###############################################################################################
     # implementation
 
-    def get_entity(self, entity_type='Shot'):
+    def get_entity(self, entity_type=None):
         """
         get entity from scene
 
