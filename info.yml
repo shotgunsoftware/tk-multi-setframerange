@@ -16,20 +16,20 @@ configuration:
 
     menu_name:
         type: str
-        default_value: "Sync Frame Range with Shotgun"
-        description: The name that will be shown in the Shotgun menu.
+        default_value: "Sync Frame Range with ShotGrid"
+        description: The name that will be shown in the ShotGrid menu.
 
     sg_in_frame_field:
         type: str
         default_value: "sg_cut_in"
-        description: The Shotgun field to use to retrieve the in frame. The app will look
+        description: The ShotGrid field to use to retrieve the in frame. The app will look
                      for this field on the entity associated with the current context (e.g.
                      the current shot, current asset etc).
 
     sg_out_frame_field:
         type: str
         default_value: "sg_cut_out"
-        description: The Shotgun field to use to retrieve the out frame. The app will look
+        description: The ShotGrid field to use to retrieve the out frame. The app will look
                      for this field on the entity associated with the current context (e.g.
                      the current shot, current asset etc).
 
@@ -43,8 +43,8 @@ configuration:
 requires_shotgun_fields:
 
 # More verbose description of this item
-display_name: "Sync frame range with Shotgun"
-description: "Sync the frame range in your scene with the one stored in Shotgun."
+display_name: "Sync frame range with ShotGrid"
+description: "Sync the frame range in your scene with the one stored in ShotGrid."
 
 # Required minimum versions for this item to run
 requires_shotgun_version:
