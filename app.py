@@ -75,9 +75,9 @@ class SetFrameRange(Application):
             (current_in, current_out, current_head, current_tail) = self.get_current_frame_range()
 
             if new_in is None or new_out is None:
-                message = "Shotgun has not yet been populated with \n"
+                message = "SG has not yet been populated with \n"
                 message += "in and out frame data for this Shot."
-                QtGui.QMessageBox.information(None, "No data in Shotgun!", message)
+                QtGui.QMessageBox.information(None, "No data in ShotGrid!", message)
                 return
 
             # now update the frame range.
@@ -134,14 +134,14 @@ class SetFrameRange(Application):
         # check if fields exist!
         if sg_in_field not in data:
             raise tank.TankError(
-                "Configuration error: Your current context is connected to a Shotgun "
+                "Configuration error: Your current context is connected to a SG "
                 "%s. This entity type does not have a "
                 "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_in_field)
             )
 
         if sg_out_field not in data:
             raise tank.TankError(
-                "Configuration error: Your current context is connected to a Shotgun "
+                "Configuration error: Your current context is connected to a SG "
                 "%s. This entity type does not have a "
                 "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_out_field)
             )
