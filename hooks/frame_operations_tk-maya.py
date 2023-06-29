@@ -25,8 +25,8 @@ class FrameOperation(HookBaseClass):
         """
         get_frame_range will return a tuple of (in_frame, out_frame)
 
-        :returns: Returns the frame range in the form (in_frame, out_frame)
-        :rtype: tuple[int, int]
+        :returns: Returns the frame range in the form (in_frame, out_frame, head_frame, tail_frame)
+        :rtype: tuple[int, int, int, int]
         """
 
         current_in = cmds.playbackOptions(query=True, minTime=True)
@@ -53,14 +53,16 @@ class FrameOperation(HookBaseClass):
             (e.g. the current shot, current asset etc)
         """
 
-        # set frame ranges for plackback
-        cmds.playbackOptions(
-            minTime=in_frame,
-            maxTime=out_frame,
-            animationStartTime=in_frame,
-            animationEndTime=out_frame,
-        )
+        self.logger.debug("Setting frame range using values : in={}, out={}, head={}, tail={}".format(in_frame, out_frame, head_frame, tail_frame))
 
+        # set frame ranges for playback
+        cmds.playbackOptions(
+            minTime=in_frame,  # Sets the start of the playback time range
+            maxTime=out_frame,
+            animationStartTime=head_frame, # Sets the start time of the animation
+            animationEndTime=tail_frame
+        )
+        
         # set frame ranges for rendering
         cmds.setAttr("defaultRenderGlobals.startFrame", in_frame)
         cmds.setAttr("defaultRenderGlobals.endFrame", out_frame)
