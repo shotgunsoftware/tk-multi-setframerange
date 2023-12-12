@@ -177,8 +177,7 @@ class SetFrameRange(Application):
             raise tank.TankError(
                 "Unexpected type returned from 'hook_frame_operation' for operation get_"
                 "frame_range - expected a 'tuple' with (in_frame, out_frame) values but "
-                "returned '%s' : %s" % (type(result).__name__),
-                result,
+                "returned '%s' : %s" % (type(result).__name__, result)
             )
         return result
 
