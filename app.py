@@ -75,9 +75,11 @@ class SetFrameRange(Application):
             (current_in, current_out) = self.get_current_frame_range()
 
             if new_in is None or new_out is None:
-                message = "SG has not yet been populated with \n"
+                message = "PTR has not yet been populated with \n"
                 message += "in and out frame data for this Shot."
-                QtGui.QMessageBox.information(None, "No data in ShotGrid!", message)
+                QtGui.QMessageBox.information(
+                    None, "No data in Flow Production Tracking!", message
+                )
                 return
 
             # now update the frame range.
@@ -86,7 +88,7 @@ class SetFrameRange(Application):
             # in Shotgun are the same as the values reported via get_current_frame_range()
             self.set_frame_range(new_in, new_out)
             message = "Your scene has been updated with the \n"
-            message += "latest frame ranges from ShotGrid.\n\n"
+            message += "latest frame ranges from Flow Production Tracking.\n\n"
             message += "Previous start frame: %s\n" % current_in
             message += "New start frame: %s\n\n" % new_in
             message += "Previous end frame: %s\n" % current_out
@@ -131,14 +133,14 @@ class SetFrameRange(Application):
         # check if fields exist!
         if sg_in_field not in data:
             raise tank.TankError(
-                "Configuration error: Your current context is connected to a SG "
+                "Configuration error: Your current context is connected to a PTR "
                 "%s. This entity type does not have a "
                 "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_in_field)
             )
 
         if sg_out_field not in data:
             raise tank.TankError(
-                "Configuration error: Your current context is connected to a SG "
+                "Configuration error: Your current context is connected to a PTR "
                 "%s. This entity type does not have a "
                 "field %s.%s!" % (sg_entity_type, sg_entity_type, sg_out_field)
             )
