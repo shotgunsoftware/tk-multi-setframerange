@@ -26,13 +26,13 @@ class FrameOperation(HookBaseClass):
         get_frame_range will return a tuple of (in_frame, out_frame)
 
         :returns: Returns the frame range in the form (in_frame, out_frame)
-        :rtype: tuple[float, float]
+        :rtype: tuple[int, int]
         """
         # Get the global start and end frame
         # Note, when using hou.playbar.playbackRange(), unpacking the start frame returns `1001.0000000000001`,
         # thus will incorrectly flag the scene sync summary pop up to show, if the PTR start frame is 1001.0
         current_in, current_out = hou.playbar.frameRange()
-        return (current_in, current_out)
+        return int(current_in), int(current_out)
 
     def set_frame_range(self, in_frame=None, out_frame=None, **kwargs):
         """
