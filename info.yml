@@ -50,6 +50,7 @@ description: "Sync the frame range in your scene with the one stored in Flow Pro
 requires_shotgun_version:
 requires_core_version: "v0.18.0"
 requires_engine_version:
+minimum_python_version: "3.9"
 
 # the engines that this app can operate in:
 supported_engines:
