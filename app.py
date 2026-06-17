@@ -12,6 +12,7 @@
 An app that syncs the frame range between a scene and a shot in Shotgun.
 
 """
+
 import os
 import traceback
 
@@ -71,8 +72,8 @@ class SetFrameRange(Application):
 
         """
         try:
-            (new_in, new_out) = self.get_frame_range_from_shotgun()
-            (current_in, current_out) = self.get_current_frame_range()
+            new_in, new_out = self.get_frame_range_from_shotgun()
+            current_in, current_out = self.get_current_frame_range()
 
             if new_in is None or new_out is None:
                 message = "PTR has not yet been populated with \n"
